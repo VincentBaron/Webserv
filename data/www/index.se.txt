@@ -1,2 +1,0 @@
-Index Webserver
-Om du ser detta fungerar Webservern.
