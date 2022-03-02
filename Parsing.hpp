@@ -15,15 +15,22 @@ class location_s
 class server_s
 {
 	public:
-		std::string		server_name;
+		std::string				server_name;
+		std::string				root;
 		std::vector<int>		port;
 		std::vector<location_s>	location;
+
+	public:
+		int		number_of_ports() const	{ return port.size(); }
 };
 
 class server_config
 {
 	public:
 		std::vector<server_s>	server;
+	
+	public:
+		int		number_of_servers() const { return server.size(); }
 };
 
 void	parsing(std::string name, server_config & data);
