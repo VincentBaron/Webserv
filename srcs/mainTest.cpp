@@ -1,12 +1,12 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   basicClientAndServer.cpp                           :+:      :+:    :+:   */
+/*   mainTest.cpp                                       :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/01 13:05:24 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/02 12:03:27 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/02 17:18:06 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@
 #define FALSE  0 
 #define PORT 8888 
 
-int basicClientAndServer(void)
+int main(void)
 {
 	
 	int opt = TRUE;

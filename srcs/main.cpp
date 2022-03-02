@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:25:46 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/02 12:45:32 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/02 17:15:39 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -22,6 +22,7 @@ int main(void)
 	// 1. Parse configuration file
 
 	// 2. Create server and init.
-	server.initSocket();
-	server.waitForConnections();
+	// server.initSocket();
+	// server.waitForConnections();
+	basicClientAndServer();
 }

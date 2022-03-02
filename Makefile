@@ -6,7 +6,7 @@
 #    By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/03/01 13:03:47 by vincentbaro       #+#    #+#              #
-#    Updated: 2022/03/01 13:09:21 by vincentbaro      ###   ########.fr        #
+#    Updated: 2022/03/02 17:17:11 by vincentbaro      ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,7 +14,7 @@
 DIR_S = srcs/
 DIR_O = objs
 
-SOURCES = 	main.cpp \
+SOURCES = 	mainTest.cpp \
 			test_unit.cpp \
 
 
