@@ -1,27 +1,16 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   initServer.cpp                                     :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/03/02 10:25:46 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/02 12:45:32 by vincentbaro      ###   ########.fr       */
+/*   Created: 2022/03/02 10:32:25 by vincentbaro       #+#    #+#             */
+/*   Updated: 2022/03/02 12:03:27 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/server.hpp"
-# define MAX_QUEU 10
-
-
-
-int main(void)
+void initServer(void)
 {
-	Socket server;
 	
-	// 1. Parse configuration file
-
-	// 2. Create server and init.
-	server.initSocket();
-	server.waitForConnections();
 }
