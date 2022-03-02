@@ -88,11 +88,19 @@ void	parse_server(std::ifstream & conf_file, server_config & data)
 	data.server.push_back(tmp); //add the server to data
 }
 
-void	parsing(std::string name, server_config & data)
+void	parsing(int ac, char **av, server_config & data)
 {
 	std::ifstream	conf_file;
 	std::string		line;
 	int				pos;
+
+	if (ac == 1)
+	{
+		std::cout << "Need configuration file" << std::endl;
+		exit(1);
+	}
+
+	std::string		name(av[1]);
 
 	conf_file.open(name);
 	if (conf_file.is_open())

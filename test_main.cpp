@@ -4,7 +4,7 @@ int		main(int ac, char **av)
 {
 	server_config	data;
 
-	parsing(av[1], data);
+	parsing(ac, av, data);
 
 	std::cout << data.server[0].location[0].path << std::endl;
 	std::cout << data.server[0].location[0].root << std::endl;

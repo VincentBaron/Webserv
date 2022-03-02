@@ -47,7 +47,7 @@ class server_config
 		int		number_of_servers() const { return server.size(); }
 };
 
-void	parsing(std::string name, server_config & data);
+void	parsing(int ac, char **av, server_config & data);
 std::vector<int>		parse_port(std::string line);
 std::string		parse_root(std::string line);
 std::vector<std::string>		parse_name(std::string line);
