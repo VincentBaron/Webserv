@@ -71,7 +71,7 @@ std::vector<std::string>		parse_name(std::string line)
 
 	line.erase(pos);
 
-	while ((pos = line.find(delim)) != std::string::npos) //split the line and store the numbers
+	while ((pos = line.find(delim)) != std::string::npos) //split the line and store the names
 	{
 		ret.push_back(line.substr(0, pos));
 		line.erase(0, pos + 1);
@@ -128,5 +128,54 @@ int			parse_body_size(std::string	line)
 	line.erase(pos);
 
 	ret = atoi(line.c_str());
+	return ret;
+}
+
+bool		is_allowed_method(std::string tmp)
+{
+	if (tmp != "GET" && tmp != "POST" && tmp != "DELETE")
+		return (false);
+	return (true);
+}
+
+std::vector<std::string>	parse_methods(std::string line)
+{
+	int							pos;
+	std::string					delim = " ";
+	std::vector<std::string>	ret;
+	std::string					tmp;
+
+	line.erase(0, 12);			
+	pos = line.find_first_not_of(" \t");
+	line.erase(0, pos);
+	pos = line.find(';');
+	
+	if (pos == std::string::npos)              //error if there is not ";"
+	{
+		std::cout << "Syntax error:" << line << std::endl;
+		exit(1);
+	}
+
+	line.erase(pos);
+
+	while ((pos = line.find(delim)) != std::string::npos) //split the line and store the methods
+	{
+		tmp = line.substr(0, pos);
+		if (!is_allowed_method(tmp))
+		{
+			std::cout << "Method not allowed: " << tmp << std::endl;
+			exit(1);
+		}
+		ret.push_back(tmp);
+		line.erase(0, pos + 1);
+	}
+	tmp = line.substr(0, pos);
+	if (!is_allowed_method(tmp))
+	{
+		std::cout << "Method not allowed: " << tmp << std::endl;
+		exit(1);
+	}
+	ret.push_back(tmp);
+
 	return ret;
 }

@@ -8,12 +8,17 @@
 class location_s
 {
 	public:
-		std::string			path;
-		std::string			root;						
-		int					client_max_body_size;
+		std::string							path;
+		std::string							root;						
+		std::vector<std::string>			allowed_methods;
+		int									client_max_body_size;
 	
 	public:
-		location_s() : path(), root(), client_max_body_size(-1) {}
+		location_s() : path(), root(), client_max_body_size(-1) {
+			allowed_methods.push_back("GET");
+			allowed_methods.push_back("POST");
+			allowed_methods.push_back("DELETE");
+		}
 		
 		bool	if_max_body_size() const { return (client_max_body_size != -1); }
 		bool	if_root() const { return (root.size() != 0); }
@@ -47,11 +52,12 @@ class server_config
 		int		number_of_servers() const { return server.size(); }
 };
 
-void	parsing(int ac, char **av, server_config & data);
-std::vector<int>		parse_port(std::string line);
-std::string		parse_root(std::string line);
-std::vector<std::string>		parse_name(std::string line);
+void									parsing(int ac, char **av, server_config & data);
+std::vector<int>						parse_port(std::string line);
+std::string								parse_root(std::string line);
+std::vector<std::string>				parse_name(std::string line);
 std::pair<std::string, std::string>		parse_error_page(std::string line);
-int			parse_body_size(std::string	line);
+int										parse_body_size(std::string	line);
+std::vector<std::string>				parse_methods(std::string line);
 
 #endif
