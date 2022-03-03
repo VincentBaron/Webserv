@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/01 13:05:24 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/03 12:19:28 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/03 12:31:07 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -48,7 +48,7 @@ int main(void)
 		err_n_die("Listen error!!!");
 	while (1)
 	{
-		std::cout << "Waitin for a connection..." << std::endl;
+		std::cout << "Waiting for a connection..." << std::endl;
 		connfd = accept(listenfd, (SA *)NULL, NULL);
 		recv(connfd, reqBuffer, 1000, 0);
 		std::cout << "" << reqBuffer << std::endl;
