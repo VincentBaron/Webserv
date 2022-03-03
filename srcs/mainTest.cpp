@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/01 13:05:24 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/03 14:16:15 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/03 14:22:50 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -73,29 +73,31 @@ int main(void)
 	FD_SET(server_fd, &current_sockets);
 	while (1)
 	{
-		// ready_sockets = current_sockets;
-
-		// if (select(FD_SETSIZE, &ready_sockets, NULL, NULL, NULL) < 0)
-		// 	err_n_die("Select failed!!");
-		// for (int i = 0; i < FD_SETSIZE; i++)
-		// {
-		// 	if (FD_ISSET(i, &ready_sockets))
-		// 	{
-		// 		if (i == server_fd)
-		// 		{
-		// 			int client_socket = accept_new_connecton(i);
-		// 			FD_SET(client_socket, &current_sockets);
-		// 		}
-		// 		else
-		// 		{
-		// 			handle_connection(i);
-		// 		}
-		// 	}
-		// }
+		ready_sockets = current_sockets;
 
 		std::cout << "Waiting for a connection..." << std::endl;
-		int client_socket = accept_new_connecton(server_fd);
-		handle_connection(client_socket);
+		if (select(FD_SETSIZE, &ready_sockets, NULL, NULL, NULL) < 0)
+			err_n_die("Select failed!!");
+		for (int i = 0; i < FD_SETSIZE; i++)
+		{
+			if (FD_ISSET(i, &ready_sockets))
+			{
+				if (i == server_fd)
+				{
+					int client_socket = accept_new_connecton(i);
+					FD_SET(client_socket, &current_sockets);
+				}
+				else
+				{
+					handle_connection(i);
+					FD_CLR(i, &current_sockets);
+				}
+			}
+		}
+
+		// std::cout << "Waiting for a connection..." << std::endl;
+		// int client_socket = accept_new_connecton(server_fd);
+		// handle_connection(client_socket);
 	}
 	return (0);
 }
