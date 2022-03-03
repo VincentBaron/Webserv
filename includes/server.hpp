@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/02 17:20:57 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/02 18:07:11 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,7 +20,7 @@ class Socket
 public:
 	// Constructors and destructor
 	Socket(void) : max_clients(30){};
-	virtual ~Socket() {};
+	virtual ~Socket(){};
 
 	// Operator overloads
 	Socket &operator=(const Socket &rhs);
@@ -68,7 +68,9 @@ public:
 		int max_sd, sd, activity, new_socket, addrlen, valread;
 		const char *message = "Hello world!";
 		char buffer[1025];
+		std::string bufferRequest;
 
+		// initialiseClientsSockets();
 		// Initialise all clients_sockets to 0;
 		for (int i = 0; i < max_clients; i++)
 			client_socket[i] = 0;
@@ -116,6 +118,23 @@ public:
 
 				// Inform user of socket number - used in send and receive commands
 				std::cout << "New connection, socket fd is, " << new_socket << ", ip is: " << inet_ntoa(address.sin_addr) << ", port is: " << ntohs(address.sin_port) << std::endl;
+
+				int n;
+				while ((n = read(new_socket, buffer, 1024)) > 0)
+				{
+					std::cout << buffer << std::endl;
+					bufferRequest.append(buffer);
+					if (buffer[n - 1] == '\n')
+						break;
+					memset(buffer, 0, 1024);
+				}
+				if (n < 0)
+				{
+					errDie("Error reading request!");
+				}
+				std::cout << "REQUEST content:\n" << bufferRequest << std::endl;
+				write(new_socket, (char *)message, strlen((char *)message));
+				close(new_socket);
 
 				// send new connection greeting message
 				if ((size_t)send(new_socket, message, strlen(message), 0) != strlen(message))
