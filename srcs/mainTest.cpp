@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/01 13:05:24 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/03 15:51:53 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/03 15:57:34 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,6 +41,7 @@ void handle_connection(int client_socket)
 	char reqBuffer[MAX_LINE + 1];
 	std::string buff;
 
+	memset(reqBuffer, 0, strlen(reqBuffer));
 	recv(client_socket, reqBuffer, 1000, 0);
 	std::cout << "" << reqBuffer << std::endl;
 	// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
@@ -72,15 +73,15 @@ int main(void)
 	fd_set current_sockets, ready_sockets;
 	FD_ZERO(&current_sockets);
 	FD_SET(server_fd, &current_sockets);
-	int max_socket = server_fd;
+	// int max_socket = server_fd;
 	while (1)
 	{
 		ready_sockets = current_sockets;
 
 		std::cout << "Waiting for a connection..." << std::endl;
-		if (select(max_socket, &ready_sockets, NULL, NULL, NULL) < 0)
+		if (select(FD_SETSIZE, &ready_sockets, NULL, NULL, NULL) < 0)
 			err_n_die("Select failed!!");
-		for (int i = 0; i < max_socket; i++)
+		for (int i = 0; i < FD_SETSIZE; i++)
 		{
 			if (FD_ISSET(i, &ready_sockets))
 			{
@@ -88,8 +89,8 @@ int main(void)
 				{
 					int client_socket = accept_new_connecton(i);
 					FD_SET(client_socket, &current_sockets);
-					if (client_socket > max_socket)
-						max_socket = client_socket;
+					// if (client_socket > max_socket)
+					// 	max_socket = client_socket;
 				}
 				else
 				{
