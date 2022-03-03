@@ -47,7 +47,7 @@ void handle_connection(int client_socket)
 	// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
 	buff = "HTTP/1.0 200 OK\r\n\r\nHello";
 	send(client_socket, buff.c_str(), buff.size(), 0);
-	close(client_socket);
+	// close(client_socket);
 }
 
 int main(void)
@@ -72,30 +72,35 @@ int main(void)
 
 	fd_set current_sockets, ready_sockets;
 	FD_ZERO(&current_sockets);
+	FD_ZERO(&ready_sockets);
 	FD_SET(server_fd, &current_sockets);
-	// int max_socket = server_fd;
+	int max_socket = server_fd;
+	std::cout << "max_socket: " << max_socket << std::endl;
 	while (1)
 	{
 		ready_sockets = current_sockets;
 
 		std::cout << "Waiting for a connection..." << std::endl;
-		if (select(FD_SETSIZE, &ready_sockets, NULL, NULL, NULL) < 0)
+		if (select(max_socket + 1, &ready_sockets, NULL, NULL, NULL) < 0)
 			err_n_die("Select failed!!");
-		for (int i = 0; i < FD_SETSIZE; i++)
+		for (int i = 0; i < max_socket; i++)
 		{
 			if (FD_ISSET(i, &ready_sockets))
 			{
+				std::cout << "" << "miam" << std::endl;
 				if (i == server_fd)
 				{
+					std::cout << "" << "yalaa" << std::endl;
 					int client_socket = accept_new_connecton(i);
 					FD_SET(client_socket, &current_sockets);
-					// if (client_socket > max_socket)
-					// 	max_socket = client_socket;
+					if (client_socket > max_socket)
+						max_socket = client_socket;
 				}
 				else
 				{
+					std::cout << "" << "yalaaa2" << std::endl;
 					handle_connection(i);
-					FD_CLR(i, &current_sockets);
+					// FD_CLR(i, &current_sockets);
 				}
 			}
 		}
