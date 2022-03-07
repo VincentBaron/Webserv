@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/01 13:05:24 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/03 15:57:34 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/07 10:21:19 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -19,12 +19,6 @@
 #define MAX_LINE 1000
 #define SA_IN struct sockaddr_in
 #define SA struct sockaddr
-
-void err_n_die(std::string mssg)
-{
-	std::cerr << "Error: " << mssg << std::endl;
-	exit(EXIT_FAILURE);
-}
 
 int accept_new_connecton(int server_socket)
 {
@@ -47,7 +41,7 @@ void handle_connection(int client_socket)
 	// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
 	buff = "HTTP/1.0 200 OK\r\n\r\nHello";
 	send(client_socket, buff.c_str(), buff.size(), 0);
-	// close(client_socket);
+	close(client_socket);
 }
 
 int main(void)
@@ -74,33 +68,31 @@ int main(void)
 	FD_ZERO(&current_sockets);
 	FD_ZERO(&ready_sockets);
 	FD_SET(server_fd, &current_sockets);
-	int max_socket = server_fd;
-	std::cout << "max_socket: " << max_socket << std::endl;
+	// int max_socket = server_fd;
 	while (1)
 	{
 		ready_sockets = current_sockets;
 
 		std::cout << "Waiting for a connection..." << std::endl;
-		if (select(max_socket + 1, &ready_sockets, NULL, NULL, NULL) < 0)
+		if (select(FD_SETSIZE, &ready_sockets, NULL, NULL, NULL) < 0)
 			err_n_die("Select failed!!");
-		for (int i = 0; i < max_socket; i++)
+		for (int i = 0; i < FD_SETSIZE; i++)
 		{
 			if (FD_ISSET(i, &ready_sockets))
 			{
-				std::cout << "" << "miam" << std::endl;
 				if (i == server_fd)
 				{
 					std::cout << "" << "yalaa" << std::endl;
 					int client_socket = accept_new_connecton(i);
 					FD_SET(client_socket, &current_sockets);
-					if (client_socket > max_socket)
-						max_socket = client_socket;
+					// if (client_socket > max_socket)
+					// 	max_socket = client_socket;
 				}
 				else
 				{
 					std::cout << "" << "yalaaa2" << std::endl;
 					handle_connection(i);
-					// FD_CLR(i, &current_sockets);
+					FD_CLR(i, &current_sockets);
 				}
 			}
 		}

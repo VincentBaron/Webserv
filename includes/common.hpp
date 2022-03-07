@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 16:35:13 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/03 12:13:47 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/07 10:21:33 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -28,6 +28,6 @@
 #define TRUE 1
 #define PORT 8888
 
-void errDie(std::string mssg);
+void err_n_die(std::string mssg);
 
 #endif

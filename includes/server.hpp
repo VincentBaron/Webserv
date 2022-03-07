@@ -6,13 +6,19 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/02 18:07:11 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/07 10:27:51 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #ifndef SERVER_HPP
 #define SERVER_HPP
 #include "common.hpp"
+#define TRUE 1
+#define FALSE 0
+#define PORT 8888
+#define MAX_LINE 1000
+#define SA_IN struct sockaddr_in
+#define SA struct sockaddr
 
 class Socket
 {
@@ -31,169 +37,89 @@ public:
 
 	void initSocket(void)
 	{
-		int opt = TRUE;
+		SA_IN servaddr;
 
-		// Create socket fd for Socket
-		if (!(socket_id = socket(AF_INET, SOCK_STREAM, 0)))
-		{
-			std::cerr << "Error creating Socket socket!" << std::endl;
-			exit(EXIT_FAILURE);
-		}
+		if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
+			err_n_die("Can't create socket!!!");
 
-		// Set master socket to allow multiple connections
-		if (setsockopt(socket_id, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0)
-		{
-			std::cerr << "Error allowing multiple connection on Socket socket!" << std::endl;
-			exit(EXIT_FAILURE);
-		}
-		address.sin_family = AF_INET; // AF_INET is the set of adresses for the internet protocol.
-		address.sin_addr.s_addr = htonl(INADDR_ANY);
-		address.sin_port = htons(PORT);
+		bzero(&servaddr, sizeof(servaddr));
+		servaddr.sin_family = AF_INET;
+		servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
+		servaddr.sin_port = htons(PORT);
 
-		if (bind(socket_id, (struct sockaddr *)&address, sizeof(address)) < 0)
-		{
-			std::cerr << "Error binding socket !" << std::endl;
-			exit(EXIT_FAILURE);
-		}
+		if ((bind(server_fd, (SA *)&servaddr, sizeof(servaddr))) < 0)
+			err_n_die("Can't bind!!!");
 
-		if (listen(socket_id, 3) < 0)
-		{
-			std::cerr << "Listening failed!" << std::endl;
-			exit(EXIT_FAILURE);
-		}
+		if ((listen(server_fd, 10)) < 0)
+			err_n_die("Listen error!!!");
+	}
+
+	int accept_new_connecton(int server_socket)
+	{
+		int addr_size = sizeof(SA_IN);
+		int client_socket;
+		SA_IN client_addr;
+		if ((client_socket = accept(server_socket, (SA *)&client_addr, (socklen_t *)&addr_size)) < 0)
+			err_n_die("Error accepting new client connection!");
+		return (client_socket);
+	}
+
+	void handle_connection(int client_socket)
+	{
+		char reqBuffer[MAX_LINE + 1];
+		std::string buff;
+
+		memset(reqBuffer, 0, strlen(reqBuffer));
+		recv(client_socket, reqBuffer, 1000, 0);
+		std::cout << "" << reqBuffer << std::endl;
+		// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
+		buff = "HTTP/1.0 200 OK\r\n\r\nHello";
+		send(client_socket, buff.c_str(), buff.size(), 0);
+		close(client_socket);
 	}
 
 	void waitForConnections(void)
 	{
-		int max_sd, sd, activity, new_socket, addrlen, valread;
-		const char *message = "Hello world!";
-		char buffer[1025];
-		std::string bufferRequest;
-
-		// initialiseClientsSockets();
-		// Initialise all clients_sockets to 0;
-		for (int i = 0; i < max_clients; i++)
-			client_socket[i] = 0;
-
-		// accept the incoming connection
-		addrlen = sizeof(address);
-		std::cout << "Waiting for connection ..." << std::endl;
+		fd_set current_sockets, ready_sockets;
+		FD_ZERO(&current_sockets);
+		FD_ZERO(&ready_sockets);
+		FD_SET(server_fd, &current_sockets);
+		// int max_socket = server_fd;
 		while (1)
 		{
-			// clear the socket set
-			FD_ZERO(&readfds);
+			ready_sockets = current_sockets;
 
-			// Add master socket to set
-			FD_SET(socket_id, &readfds);
-			max_sd = socket_id;
-
-			// add child sockets to set
-			for (int i = 0; i < max_clients; i++)
+			std::cout << "Waiting for a connection..." << std::endl;
+			if (select(FD_SETSIZE, &ready_sockets, NULL, NULL, NULL) < 0)
+				err_n_die("Select failed!!");
+			for (int i = 0; i < FD_SETSIZE; i++)
 			{
-				// socket descriptor
-				sd = client_socket[i];
-
-				// if valid socket descriptor then add to read list
-				if (sd > 0)
-					FD_SET(sd, &readfds);
-
-				if (sd > max_sd)
-					max_sd = sd;
-			}
-
-			// wait for an activity on one of the sockets
-			activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
-
-			if ((activity < 0) && (errno != EINTR))
-				std::cerr << "Select error" << std::endl;
-
-			// If something happened on master socket, then its an incoming connection
-			if (FD_ISSET(socket_id, &readfds))
-			{
-				if ((new_socket = accept(socket_id, (struct sockaddr *)&address, (socklen_t *)&addrlen) < 0))
+				if (FD_ISSET(i, &ready_sockets))
 				{
-					std::cerr << "Accept error" << std::endl;
-					exit(EXIT_FAILURE);
-				}
-
-				// Inform user of socket number - used in send and receive commands
-				std::cout << "New connection, socket fd is, " << new_socket << ", ip is: " << inet_ntoa(address.sin_addr) << ", port is: " << ntohs(address.sin_port) << std::endl;
-
-				int n;
-				while ((n = read(new_socket, buffer, 1024)) > 0)
-				{
-					std::cout << buffer << std::endl;
-					bufferRequest.append(buffer);
-					if (buffer[n - 1] == '\n')
-						break;
-					memset(buffer, 0, 1024);
-				}
-				if (n < 0)
-				{
-					errDie("Error reading request!");
-				}
-				std::cout << "REQUEST content:\n" << bufferRequest << std::endl;
-				write(new_socket, (char *)message, strlen((char *)message));
-				close(new_socket);
-
-				// send new connection greeting message
-				if ((size_t)send(new_socket, message, strlen(message), 0) != strlen(message))
-					std::cerr << "Send failure!" << std::endl;
-				std::cout << "Welcome message sent successfully!" << std::endl;
-
-				// add new socket to aray of sockets
-				for (int i = 0; i < max_clients; i++)
-				{
-					// if position is empty
-					if (!client_socket[i])
+					if (i == server_fd)
 					{
-						client_socket[i] = new_socket;
-						std::cout << "Adding to list of sockets as " << i << std::endl;
-
-						break;
+						std::cout << ""
+								  << "yalaa" << std::endl;
+						int client_socket = accept_new_connecton(i);
+						FD_SET(client_socket, &current_sockets);
+						// if (client_socket > max_socket)
+						// 	max_socket = client_socket;
 					}
-				}
-			}
-		}
-
-		// else its some IO operation on some other socket
-		for (int i = 0; i < max_clients; i++)
-		{
-			sd = client_socket[i];
-
-			if (FD_ISSET(sd, &readfds))
-			{
-				// Check if it was for closing, and also read the income message
-				if (!(valread = read(sd, buffer, 1024)))
-				{
-					// somebody disconnected, get his details and print
-					getpeername(sd, (struct sockaddr *)&address,
-								(socklen_t *)&addrlen);
-					std::cout << "Host disconnected, ip " << inet_ntoa(address.sin_addr) << ", port " << ntohs(address.sin_port) << std::endl;
-
-					// CLose the socket and mark as 0 in list of reuse
-					close(sd);
-					client_socket[i] = 0;
-				}
-
-				// echo back the message that came in
-				else
-				{
-					// set the string terminating NULL byte on the end of the data read
-					buffer[valread] = '\0';
-					send(sd, buffer, strlen(buffer), 0);
+					else
+					{
+						std::cout << ""
+								  << "yalaaa2" << std::endl;
+						handle_connection(i);
+						FD_CLR(i, &current_sockets);
+					}
 				}
 			}
 		}
 	}
 
-private:
-	// Attributes
-	int socket_id;
-	struct sockaddr_in address;
-	fd_set readfds;
-	int max_clients;
-	int client_socket[30];
-};
+	private:
+		int server_fd;
+		int max_clients;
+	};
 
 #endif
