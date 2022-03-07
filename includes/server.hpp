@@ -73,6 +73,7 @@ public:
 		recv(client_socket, reqBuffer, 1000, 0);
 		std::cout << "" << reqBuffer << std::endl;
 		// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
+		// manage_request();
 		buff = "HTTP/1.0 200 OK\r\n\r\nHello";
 		send(client_socket, buff.c_str(), buff.size(), 0);
 		close(client_socket);
