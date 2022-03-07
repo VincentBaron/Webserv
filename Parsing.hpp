@@ -32,6 +32,7 @@ class server_s
 		std::pair<std::string, std::string>		error_page;
 		std::vector<int>						port;
 		std::vector<location_s>					location;
+		int										client_max_body_size; //add parsing;
 
 	public:
 		server_s() : root(), error_page(), port(), location(), server_name() {}

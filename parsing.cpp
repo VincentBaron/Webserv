@@ -83,6 +83,8 @@ void	parse_server(std::ifstream & conf_file, server_config & data)
 			tmp.error_page = parse_error_page(line);
 		else if (line.compare(0, 8, "location") == 0)	//parse location
 			tmp.location.push_back(parse_location(conf_file, line));
+		else if (line.compare(0, 20, "client_max_body_size") == 0) //parse body_size
+			tmp.client_max_body_size = parse_body_size(line);
 
 		std::getline(conf_file, line);
 	}

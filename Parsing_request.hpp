@@ -4,10 +4,12 @@
 # include <vector>
 # include <string>
 # include <iostream>
+# include <map>
 
 # define GET 0
 # define POST 1
 # define DELETE 2
+# define MAX_METHOD_SIZE 6
 
 class client_request
 {
@@ -15,15 +17,23 @@ class client_request
 		int					method;
 		std::string			request_target;
 		std::string			http_version;
-		std::string			host;
-		std::string			user_agent;
-		std::vector<std::string>	accept;
-		std::string			accept_language;		
-		std::string			accept_encoding;
-		std::string			connection;
-		std::string			referer;
+		std::map<std::string, std::string>		header_fields; //important: host
+
+		std::string			body;
 
 		int					error;
+
+	public:
+		client_request() : _r_body(false), error(0) {}
+
+		const bool	reading_body() const { return (_r_body); }
+
+		void	set_rbody(bool v) { _r_body = v; }
+
+	private:
+		bool				_r_body;
 };
+
+void		parse_request(std::string input, client_request & request);
 
 #endif
