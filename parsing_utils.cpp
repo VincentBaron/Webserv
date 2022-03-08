@@ -1,6 +1,26 @@
 #include "Parsing.hpp"
 #include <fstream>
 
+std::string		parse_index(std::string	line)
+{
+	std::string		ret;
+	int				pos;
+
+	line.erase(0, 5);
+	pos = line.find_first_not_of(" \t");
+	line.erase(0, pos);
+	pos = line.find_first_of(';');
+
+	if (pos == std::string::npos)              //error if there is not ";"
+	{
+		std::cout << "Syntax error:" << line << std::endl;
+		exit(1);
+	}
+	ret = line.substr(0, pos);
+
+	return ret;
+}
+
 std::vector<int>		parse_port(std::string line)
 {
 	std::vector<int>		ret;

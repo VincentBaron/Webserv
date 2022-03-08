@@ -3,7 +3,7 @@
 
 location_s		parse_location(std::ifstream & conf_file, std::string line)
 {
-	location_s		ret;	
+	location_s		ret;
 	int				pos;
 
 	line.erase(0, 8);			
@@ -39,6 +39,8 @@ location_s		parse_location(std::ifstream & conf_file, std::string line)
 		}
 		else if (line.compare(0, 12, "limit_except") == 0)
 			ret.allowed_methods = parse_methods(line);
+		else if (line.compare(0, 5, "index") == 0) //parse_index
+			ret.index = parse_index(line);
 
 		std::getline(conf_file, line);
 	}
@@ -51,6 +53,14 @@ void	parse_server(std::ifstream & conf_file, server_config & data)
 	server_s	tmp;
 	std::string	line;	
 	int			pos;
+	
+	char		*pwd = getcwd(NULL, 0);
+	if (pwd)
+	{
+		tmp.root = pwd;
+		tmp.root += "/www";
+		free(pwd);
+	}
 
 	std::getline(conf_file, line);
 	while ((pos = line.find('}')) == std::string::npos || line.find("{", 0, pos - 1) != std::string::npos)
@@ -85,6 +95,8 @@ void	parse_server(std::ifstream & conf_file, server_config & data)
 			tmp.location.push_back(parse_location(conf_file, line));
 		else if (line.compare(0, 20, "client_max_body_size") == 0) //parse body_size
 			tmp.client_max_body_size = parse_body_size(line);
+		else if (line.compare(0, 5, "index") == 0) //parse_index
+			tmp.index = parse_index(line);
 
 		std::getline(conf_file, line);
 	}

@@ -1,5 +1,10 @@
 #include "Parsing_request.hpp"
 
+/* char*		client_request::process_request(server_config const server) */
+/* { */
+	
+/* } */
+
 int			parse_line_request(std::string line, client_request & request)
 {
 		int				pos;

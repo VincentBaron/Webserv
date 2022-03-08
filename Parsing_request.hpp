@@ -24,11 +24,18 @@ class client_request
 		int					error;
 
 	public:
-		client_request() : _r_body(false), error(0) {}
+		client_request() : _r_body(false), error(200) {}
 
 		const bool	reading_body() const { return (_r_body); }
-
 		void	set_rbody(bool v) { _r_body = v; }
+
+		/* char	*process_request(server_config const server); */
+
+	private:
+
+		/* char	*process_get(server_config const server, int server_pos, int location_pos); */
+		/* char	*process_post(server_config const server,  int server_pos, int location_pos); */
+		/* char	*process_delete(server_config const server,  int server_pos, int location_pos); */
 
 	private:
 		bool				_r_body;
