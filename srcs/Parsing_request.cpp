@@ -77,6 +77,32 @@ std::string		ft_gettime()
 	return t_str;
 }
 
+bool		path_is_dir(std::string path)
+{
+	struct stat		s;
+	if (lstat(path.c_str(), &s) == 0)
+	{
+		if (S_ISDIR(s.st_mode))
+			return true;
+		else
+			return false;
+	}
+	return false;
+}
+
+bool		path_is_file(std::string path)
+{
+	struct stat		s;
+	if (lstat(path.c_str(), &s) == 0)
+	{
+		if (S_ISREG(s.st_mode))
+			return true;
+		else
+			return false;
+	}
+	return false;
+}
+
 char *		client_request::process_get(server_config const server)
 {
 	std::string		ret;
