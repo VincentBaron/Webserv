@@ -84,17 +84,17 @@ char *		client_request::process_get(server_config const server)
 	std::string		reponse_body;
 	std::string		file_path = server.get_root(this->server_pos, this->location_pos) + this->request_target; 
 
-	if (file_path is a dir)
-	{
-		if (autoindex_on())
-		{}
-		else
-		{}
-	}
-	else if (file_path is a file)
-	{
+	// if (file_path is a dir)
+	// {
+	// 	if (autoindex_on())
+	// 	{}
+	// 	else
+	// 	{}
+	// }
+	// else if (file_path is a file)
+	// {
 	
-	}
+	// }
 
 	req_file.open(file_path);
 	if (!req_file.is_open())
