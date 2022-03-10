@@ -5,8 +5,9 @@
 # include <iostream>
 # include <string>
 # include <unistd.h>
+# include <fstream>
 
-class location_s
+class location_s // must construct with the values from the server
 {
 	public:
 		std::string							path;
@@ -16,7 +17,7 @@ class location_s
 		int									client_max_body_size;
 	
 	public:
-		location_s() : client_max_body_size(-1) {
+		location_s() : client_max_body_size(0) {
 			allowed_methods.push_back("GET");
 			allowed_methods.push_back("POST");
 			allowed_methods.push_back("DELETE");
@@ -32,10 +33,12 @@ class server_s
 		std::vector<std::string>				server_name;
 		std::string								root;
 		std::string								index;
+		std::string								autoindex = "off"; //add parsing
 		std::pair<std::string, std::string>		error_page;
 		std::vector<int>						port;
 		std::vector<location_s>					location;
-		int										client_max_body_size; //add parsing;
+		std::vector<std::string>				allowed_methods;
+		int										client_max_body_size;
 
 	public:
 
@@ -43,15 +46,20 @@ class server_s
 		int		number_of_names() const { return server_name.size(); }
 		int		number_of_locations() const { return location.size(); }
 		bool	if_error_page() const { return (error_page.first.size() != 0); }
+		bool	autoindex_on() { return (autoindex == "on"); }
+		bool	autoindex_off() { return (autoindex == "off"); }
 };
 
 class server_config
 {
 	public:
 		std::vector<server_s>	server;
-	
+
 	public:
-		int		number_of_servers() const { return server.size(); }
+		const std::vector<std::string>		get_allowed_methods(int s, int l) const;
+		const std::string					get_root(int s, int l) const;
+		const std::string					get_uri(int s, int l) const;
+		const std::string					get_index(int s, int l) const;
 };
 
 void									parsing(int ac, char **av, server_config & data);

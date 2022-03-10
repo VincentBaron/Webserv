@@ -35,7 +35,7 @@ void	test(std::string input)
 	/* 	} */
 	client_request	req;
 
-	parse_request(input, req);
+	req.parse_request(input);
 
 	std::cout << req.method << " " << req.request_target << " " << req.http_version << std::endl;
 

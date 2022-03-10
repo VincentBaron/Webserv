@@ -28,18 +28,18 @@ location_s		parse_location(std::ifstream & conf_file, std::string line)
 	{
 		pos = line.find_first_not_of(" \t");	
 		line.erase(0, pos);
-		if (line.compare(0, 4, "root") == 0)	
+		if (line.compare(0, 4, "root") == 0)						//parse root	
 			ret.root = parse_root(line);
-		else if (line.compare(0, 20, "client_max_body_size") == 0)
+		else if (line.compare(0, 20, "client_max_body_size") == 0)	//parse max body size
 			ret.client_max_body_size = parse_body_size(line);
-		else if (line.compare(0, 8, "location") == 0)
+		else if (line.compare(0, 8, "location") == 0)				//if location inside location: error
 		{
 			std::cout << "Syntax error:" << line << std::endl;
 			exit(1);
 		}
-		else if (line.compare(0, 12, "limit_except") == 0)
+		else if (line.compare(0, 12, "limit_except") == 0)			//parse allowed methods
 			ret.allowed_methods = parse_methods(line);
-		else if (line.compare(0, 5, "index") == 0) //parse_index
+		else if (line.compare(0, 5, "index") == 0) 					//parse index
 			ret.index = parse_index(line);
 
 		std::getline(conf_file, line);
@@ -87,16 +87,18 @@ void	parse_server(std::ifstream & conf_file, server_config & data)
 			for ( ; first != last ; ++first)
 				tmp.port.push_back(*first);
 		}
-		else if (line.compare(0, 4, "root") == 0)  		 //parse root
+		else if (line.compare(0, 4, "root") == 0)  		 			//parse root
 			tmp.root = parse_root(line);
-		else if (line.compare(0, 10, "error_page") == 0) //parse error_page
+		else if (line.compare(0, 10, "error_page") == 0) 			//parse error_page
 			tmp.error_page = parse_error_page(line);
-		else if (line.compare(0, 8, "location") == 0)	//parse location
-			tmp.location.push_back(parse_location(conf_file, line));
-		else if (line.compare(0, 20, "client_max_body_size") == 0) //parse body_size
+		else if (line.compare(0, 20, "client_max_body_size") == 0)	//parse body_size
 			tmp.client_max_body_size = parse_body_size(line);
-		else if (line.compare(0, 5, "index") == 0) //parse_index
+		else if (line.compare(0, 5, "index") == 0)					//parse_index
 			tmp.index = parse_index(line);
+		else if (line.compare(0, 12, "limit_except") == 0)			//parse allowed methods
+			tmp.allowed_methods = parse_methods(line);
+		else if (line.compare(0, 8, "location") == 0)				//parse location
+			tmp.location.push_back(parse_location(conf_file, line));
 
 		std::getline(conf_file, line);
 	}
@@ -136,4 +138,36 @@ void	parsing(int ac, char **av, server_config & data)
 		std::cout << "Could not open file\n";
 		exit(1);
 	}
+}
+
+const std::vector<std::string>	server_config::get_allowed_methods(int s, int l) const
+{
+	if (l == -1)
+		return server[s].allowed_methods;
+	else
+		return server[s].location[l].allowed_methods;
+}
+
+const std::string			server_config::get_root(int s, int l) const
+{
+	if (l == -1)
+		return server[s].root;
+	else
+		return server[s].location[l].root;
+}
+
+const std::string			server_config::get_uri(int s, int l) const
+{
+	if (l == -1)
+		return ("/");
+	else
+		return server[s].location[l].path;
+}
+
+const std::string			server_config::get_index(int s, int l) const
+{
+	if (l == -1)
+		return server[s].index;
+	else
+		return server[s].location[l].index;
 }
