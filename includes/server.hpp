@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/10 17:13:25 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/10 17:43:01 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,7 +91,7 @@ public:
 		int max_socket = server_fd;
 		while (1)
 		{
-			FD_ZERO(&ready_sockets);
+			// FD_ZERO(&ready_sockets);
 			ready_sockets = current_sockets;
 
 			std::cout << "Waiting for a connection..." << std::endl;
