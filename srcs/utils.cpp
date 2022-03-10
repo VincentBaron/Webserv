@@ -1,28 +1,21 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   main.cpp                                           :+:      :+:    :+:   */
+/*   utils.cpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2022/03/02 10:25:46 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/07 10:26:57 by vincentbaro      ###   ########.fr       */
+/*   Created: 2022/03/02 17:46:20 by vincentbaro       #+#    #+#             */
+/*   Updated: 2022/03/07 10:21:06 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
-#include "../includes/server.hpp"
-# define MAX_QUEU 10
+#include <string>
+#include <iostream>
+#include <stdlib.h>
 
-
-
-int main(void)
+void err_n_die(std::string mssg)
 {
-	Socket server;
-	
-	// 1. Parse configuration file
-
-	// 2. Create server and init.
-	server.initSocket();
-	server.waitForConnections();
-	// basicClientAndServer();
+	std::cerr << "Error: " << mssg << std::endl;
+	exit(EXIT_FAILURE);
 }

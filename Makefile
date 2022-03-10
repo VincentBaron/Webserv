@@ -6,7 +6,7 @@
 #    By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/03/01 13:03:47 by vincentbaro       #+#    #+#              #
-#    Updated: 2022/03/01 13:06:05 by vincentbaro      ###   ########.fr        #
+#    Updated: 2022/03/07 10:29:57 by vincentbaro      ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -14,8 +14,8 @@
 DIR_S = srcs/
 DIR_O = objs
 
-SOURCES = 	main.cpp \
-			test_unit.cpp \
+SOURCES =   main.cpp \
+			utils.cpp \
 
 
 SRCS = $(addprefix $(DIR_S)/,$(SOURCES))
@@ -29,7 +29,7 @@ NAME_TEST = unit-test
 
 CC = clang++
 
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -g3 -Wno-unused -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror -std=c++98 -g3 #-fsanitize=address
 
 all: $(NAME)
 
