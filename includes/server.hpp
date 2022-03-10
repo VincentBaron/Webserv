@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/07 10:27:51 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/10 11:24:31 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,33 +83,29 @@ public:
 	{
 		fd_set current_sockets, ready_sockets;
 		FD_ZERO(&current_sockets);
-		FD_ZERO(&ready_sockets);
 		FD_SET(server_fd, &current_sockets);
-		// int max_socket = server_fd;
+		int max_socket = server_fd;
 		while (1)
 		{
+			FD_ZERO(&ready_sockets);
 			ready_sockets = current_sockets;
 
 			std::cout << "Waiting for a connection..." << std::endl;
-			if (select(FD_SETSIZE, &ready_sockets, NULL, NULL, NULL) < 0)
+			if (select(max_socket + 1, &ready_sockets, NULL, NULL, NULL) < 0)
 				err_n_die("Select failed!!");
-			for (int i = 0; i < FD_SETSIZE; i++)
+			for (int i = 0; i <= max_socket; i++)
 			{
 				if (FD_ISSET(i, &ready_sockets))
 				{
 					if (i == server_fd)
 					{
-						std::cout << ""
-								  << "yalaa" << std::endl;
 						int client_socket = accept_new_connecton(i);
 						FD_SET(client_socket, &current_sockets);
-						// if (client_socket > max_socket)
-						// 	max_socket = client_socket;
+						if (client_socket > max_socket)
+							max_socket = client_socket;
 					}
 					else
 					{
-						std::cout << ""
-								  << "yalaaa2" << std::endl;
 						handle_connection(i);
 						FD_CLR(i, &current_sockets);
 					}
