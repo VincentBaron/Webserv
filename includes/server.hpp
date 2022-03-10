@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/07 10:27:51 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/10 11:17:10 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -67,60 +67,75 @@ public:
 	void handle_connection(int client_socket)
 	{
 		char reqBuffer[MAX_LINE + 1];
-		std::string buff;
+		
 
 		memset(reqBuffer, 0, strlen(reqBuffer));
 		recv(client_socket, reqBuffer, 1000, 0);
 		std::cout << "" << reqBuffer << std::endl;
 		// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
 		// manage_request();
+	}
+
+	void write_to_client(int client_socket)
+	{
+		std::string buff;
 		buff = "HTTP/1.0 200 OK\r\n\r\nHello";
 		send(client_socket, buff.c_str(), buff.size(), 0);
 		close(client_socket);
 	}
 
+	void initializeSockets(fd_set *all_read, fd_set *all_write)
+	{
+		FD_ZERO(all_read);
+		FD_ZERO(all_write);
+		FD_SET(server_fd, all_read);
+		FD_SET(server_fd, all_write);
+	}
+
 	void waitForConnections(void)
 	{
-		fd_set current_sockets, ready_sockets;
-		FD_ZERO(&current_sockets);
-		FD_ZERO(&ready_sockets);
-		FD_SET(server_fd, &current_sockets);
-		// int max_socket = server_fd;
+		fd_set all_read, all_write, read_sockets, write_sockets;
+		initializeSockets(&all_read, &all_write);
+		int max_socket = server_fd;
 		while (1)
 		{
-			ready_sockets = current_sockets;
-
+			FD_ZERO(&read_sockets);
+			FD_ZERO(&write_sockets);
+			read_sockets = all_read;
+			write_sockets = all_write;
 			std::cout << "Waiting for a connection..." << std::endl;
-			if (select(FD_SETSIZE, &ready_sockets, NULL, NULL, NULL) < 0)
+			if (select(max_socket + 1, &read_sockets, &write_sockets, NULL, NULL) < 0)
 				err_n_die("Select failed!!");
-			for (int i = 0; i < FD_SETSIZE; i++)
+			for (int i = 0; i <= max_socket; i++)
 			{
-				if (FD_ISSET(i, &ready_sockets))
+				if (FD_ISSET(i, &read_sockets))
 				{
 					if (i == server_fd)
 					{
-						std::cout << ""
-								  << "yalaa" << std::endl;
 						int client_socket = accept_new_connecton(i);
-						FD_SET(client_socket, &current_sockets);
-						// if (client_socket > max_socket)
-						// 	max_socket = client_socket;
+						FD_SET(client_socket, &all_read);
+						FD_SET(client_socket, &all_write);
+						if (client_socket > max_socket)
+							max_socket = client_socket;
 					}
 					else
 					{
-						std::cout << ""
-								  << "yalaaa2" << std::endl;
 						handle_connection(i);
-						FD_CLR(i, &current_sockets);
 					}
+				}
+				else if (FD_ISSET(i, &write_sockets))
+				{
+					write_to_client(i);
+					FD_CLR(i, &all_read);
+					FD_CLR(i, &all_write);
 				}
 			}
 		}
 	}
 
-	private:
-		int server_fd;
-		int max_clients;
-	};
+private:
+	int server_fd;
+	int max_clients;
+};
 
 #endif
