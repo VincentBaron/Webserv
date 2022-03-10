@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/10 11:24:31 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/10 17:13:25 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -70,12 +70,16 @@ public:
 		std::string buff;
 
 		memset(reqBuffer, 0, strlen(reqBuffer));
-		recv(client_socket, reqBuffer, 1000, 0);
+		if (recv(client_socket, reqBuffer, 1000, 0))
+		{
+			close(client_socket);
+			err_n_die("Error reveiving!!!");
+		}
 		std::cout << "" << reqBuffer << std::endl;
 		// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
-		// manage_request();
+		// client_request();
 		buff = "HTTP/1.0 200 OK\r\n\r\nHello";
-		send(client_socket, buff.c_str(), buff.size(), 0);
+		send(client_socket, buff.c_str(), buff.size() + 1, 0);
 		close(client_socket);
 	}
 
