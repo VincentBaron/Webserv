@@ -4,7 +4,7 @@
 std::string		parse_index(std::string	line)
 {
 	std::string		ret;
-	int				pos;
+	size_t			pos;
 
 	line.erase(0, 5);
 	pos = line.find_first_not_of(" \t");
@@ -14,7 +14,7 @@ std::string		parse_index(std::string	line)
 	if (pos == std::string::npos)              //error if there is not ";"
 	{
 		std::cout << "Syntax error:" << line << std::endl;
-		exit(1);
+		_exit(1);
 	}
 	ret = line.substr(0, pos);
 
@@ -26,7 +26,7 @@ std::vector<int>		parse_port(std::string line)
 	std::vector<int>		ret;
 	std::string				delim = " ";
 	std::string				port_num;
-	int						pos;
+	size_t					pos;
 
 	line.erase(0, 6);									//remove "listen" ";" and first spaces and tabs
 	pos = line.find_first_not_of(" \t");
@@ -36,7 +36,7 @@ std::vector<int>		parse_port(std::string line)
 	if (pos == std::string::npos)              //error if there is not ";"
 	{
 		std::cout << "Syntax error:" << line << std::endl;
-		exit(1);
+		_exit(1);
 	}
 
 	line.erase(pos);
@@ -55,7 +55,7 @@ std::vector<int>		parse_port(std::string line)
 std::string		parse_root(std::string line)
 {
 	std::string		ret;
-	int				pos;
+	size_t			pos;
 
 	line.erase(0, 4);
 	pos = line.find_first_not_of(" \t");
@@ -65,7 +65,7 @@ std::string		parse_root(std::string line)
 	if (pos == std::string::npos)              //error if there is not ";"
 	{
 		std::cout << "Syntax error:" << line << std::endl;
-		exit(1);
+		_exit(1);
 	}
 	ret = line.substr(0, pos);
 
@@ -76,7 +76,7 @@ std::vector<std::string>		parse_name(std::string line)
 {
 	std::vector<std::string>		ret;
 	std::string						delim = " ";
-	int								pos;
+	size_t							pos;
 
 	line.erase(0, 11);									//remove "listen" ";" and first spaces and tabs
 	pos = line.find_first_not_of(" \t");
@@ -86,7 +86,7 @@ std::vector<std::string>		parse_name(std::string line)
 	if (pos == std::string::npos)              //error if there is not ";"
 	{
 		std::cout << "Syntax error:" << line << std::endl;
-		exit(1);
+		_exit(1);
 	}
 
 	line.erase(pos);
@@ -104,7 +104,7 @@ std::vector<std::string>		parse_name(std::string line)
 std::pair<std::string, std::string>		parse_error_page(std::string line)
 {
 	std::pair<std::string, std::string>		ret;
-	int										pos;
+	size_t									pos;
 	std::string								delim = " ";
 
 	line.erase(0, 10);									//remove "listen" ";" and first spaces and tabs
@@ -115,7 +115,7 @@ std::pair<std::string, std::string>		parse_error_page(std::string line)
 	if (pos == std::string::npos)              //error if there is not ";"
 	{
 		std::cout << "Syntax error:" << line << std::endl;
-		exit(1);
+		_exit(1);
 	}
 
 	line.erase(pos);
@@ -132,7 +132,7 @@ std::pair<std::string, std::string>		parse_error_page(std::string line)
 int			parse_body_size(std::string	line)
 {
 	int				ret;
-	int				pos;
+	size_t			pos;
 
 	line.erase(0, 20);			
 	pos = line.find_first_not_of(" \t");
@@ -142,7 +142,7 @@ int			parse_body_size(std::string	line)
 	if (pos == std::string::npos)              //error if there is not ";"
 	{
 		std::cout << "Syntax error:" << line << std::endl;
-		exit(1);
+		_exit(1);
 	}
 
 	line.erase(pos);
@@ -160,7 +160,7 @@ bool		is_allowed_method(std::string tmp)
 
 std::vector<std::string>	parse_methods(std::string line)
 {
-	int							pos;
+	size_t						pos;
 	std::string					delim = " ";
 	std::vector<std::string>	ret;
 	std::string					tmp;
@@ -173,7 +173,7 @@ std::vector<std::string>	parse_methods(std::string line)
 	if (pos == std::string::npos)              //error if there is not ";"
 	{
 		std::cout << "Syntax error:" << line << std::endl;
-		exit(1);
+		_exit(1);
 	}
 
 	line.erase(pos);
@@ -184,7 +184,7 @@ std::vector<std::string>	parse_methods(std::string line)
 		if (!is_allowed_method(tmp))
 		{
 			std::cout << "Method not allowed: " << tmp << std::endl;
-			exit(1);
+			_exit(1);
 		}
 		ret.push_back(tmp);
 		line.erase(0, pos + 1);
@@ -193,7 +193,7 @@ std::vector<std::string>	parse_methods(std::string line)
 	if (!is_allowed_method(tmp))
 	{
 		std::cout << "Method not allowed: " << tmp << std::endl;
-		exit(1);
+		_exit(1);
 	}
 	ret.push_back(tmp);
 

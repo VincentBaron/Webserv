@@ -26,13 +26,13 @@ class client_request
 		std::string			error;
 
 	public:
-		client_request() : _r_body(false), error("200"), server_pos(-1), location_pos(-1), port(8080)
+		client_request() : port(8080), error("200"),  _r_body(false), server_pos(-1), location_pos(-1)
 		{
 			file_types = initialize_file_types();
 			error_reponse = initialize_error_reponse();
 		}
 
-		const bool	reading_body() const { return (_r_body); }
+		bool		reading_body() const { return (_r_body); }
 		void		set_rbody(bool v) { _r_body = v; }
 		void		set_port(int p) { port = p; }
 

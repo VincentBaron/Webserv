@@ -4,6 +4,8 @@
 # include <vector>
 # include <iostream>
 # include <string>
+# include <stdio.h>
+# include <stdlib.h>
 # include <unistd.h>
 # include <fstream>
 
@@ -33,7 +35,7 @@ class server_s
 		std::vector<std::string>				server_name;
 		std::string								root;
 		std::string								index;
-		std::string								autoindex = "off"; //add parsing
+		/* std::string								autoindex = "off"; //add parsing */
 		std::pair<std::string, std::string>		error_page;
 		std::vector<int>						port;
 		std::vector<location_s>					location;
@@ -46,8 +48,8 @@ class server_s
 		int		number_of_names() const { return server_name.size(); }
 		int		number_of_locations() const { return location.size(); }
 		bool	if_error_page() const { return (error_page.first.size() != 0); }
-		bool	autoindex_on() { return (autoindex == "on"); }
-		bool	autoindex_off() { return (autoindex == "off"); }
+		/* bool	autoindex_on() { return (autoindex == "on"); } */
+		/* bool	autoindex_off() { return (autoindex == "off"); } */
 };
 
 class server_config

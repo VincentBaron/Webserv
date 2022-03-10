@@ -4,9 +4,9 @@ char*		client_request::process_request(server_config const data)
 {
 //......Serching a server matching the port
 
-	for (int i = 0; i < data.server.size(); i++)
+	for (size_t i = 0; i < data.server.size(); i++)
 	{
-		for (int j = 0; j < data.server[i].port.size(); j++)
+		for (size_t j = 0; j < data.server[i].port.size(); j++)
 			if (data.server[i].port[j] == this->port)
 				this->server_pos = i;			
 	}
@@ -22,7 +22,7 @@ char*		client_request::process_request(server_config const data)
 	std::string		relative_path;
 	std::string		location_path;
 
-	for (int i = 0; i < data.server[this->server_pos].location.size(); i++)
+	for (size_t i = 0; i < data.server[this->server_pos].location.size(); i++)
 	{
 		location_path = data.server[this->server_pos].location[i].path;
 		relative_path = this->request_target.substr(0, location_path.size());
@@ -37,7 +37,7 @@ char*		client_request::process_request(server_config const data)
 
 	bool	flag = true;
 
-	for (int i = 0; i < data.get_allowed_methods(server_pos, location_pos).size(); i++)
+	for (size_t i = 0; i < data.get_allowed_methods(server_pos, location_pos).size(); i++)
 	{
 		if (this->method == data.get_allowed_methods(server_pos, location_pos)[i])	
 			flag = false;
@@ -53,10 +53,10 @@ char*		client_request::process_request(server_config const data)
 
 	if (this->method == "GET")
 		return	this->process_get(data);
-	else if (this->method == "POST")
-		return	this->process_post(data);
-	else if (this->method == "DELETE")
-		return	this->process_delete(data);
+	/* else if (this->method == "POST") */
+	/* 	return	this->process_post(data); */
+	/* else if (this->method == "DELETE") */
+	/* 	return	this->process_delete(data); */
 
 	return NULL;
 }
@@ -84,19 +84,19 @@ char *		client_request::process_get(server_config const server)
 	std::string		reponse_body;
 	std::string		file_path = server.get_root(this->server_pos, this->location_pos) + this->request_target; 
 
-	if (file_path is a dir)
-	{
-		if (autoindex_on())
-		{}
-		else
-		{}
-	}
-	else if (file_path is a file)
-	{
+	/* if (file_path is a dir) */
+	/* { */
+	/* 	if (autoindex_on()) */
+	/* 	{} */
+	/* 	else */
+	/* 	{} */
+	/* } */
+	/* else if (file_path is a file) */
+	/* { */
 	
-	}
+	/* } */
 
-	req_file.open(file_path);
+	req_file.open(file_path.c_str());
 	if (!req_file.is_open())
 	{
 		this->error = "404";
@@ -112,14 +112,14 @@ char *		client_request::process_get(server_config const server)
 	
 	std::string		date = ft_gettime();
 
-	ret = this->
+	/* ret = this-> */
 
 	return NULL;
 }
 
 int			client_request::parse_line_request(std::string line)
 {
-	int				pos;
+	size_t			pos;
 	std::string		tmp;
 
 	//.......line structure [method] SP [request-target] SP [http-version]
@@ -137,6 +137,7 @@ int			client_request::parse_line_request(std::string line)
 		this->method = "POST";
 	else if (tmp == "DELETE")
 		this->method = "DELETE";
+	else
 	{
 		this->error = "405";
 		return 1;
@@ -160,7 +161,7 @@ int			client_request::parse_line_request(std::string line)
 
 int			client_request::parse_header_line(std::string line)
 {
-	int				pos;	
+	size_t			pos;	
 	std::pair<std::string, std::string>		field;
 
 //..........line structure [field-name] ":" OWS [field-value] OWS
@@ -189,7 +190,7 @@ void		client_request::parse_request(std::string input)
 {	
 	std::string		line;
 	std::string		tmp;
-	int				pos;
+	size_t			pos;
 	
 	if (this->reading_body())
 		this->body += input;
@@ -201,7 +202,7 @@ void		client_request::parse_request(std::string input)
 			return ;
 		input.erase(0, pos + 2);
 
-		while ((pos = input.find("\r\n")) != std::string::npos && input[pos + 2] != std::string::npos)
+		while ((pos = input.find("\r\n")) != std::string::npos && (pos+ 2) < input.size())
 		{
 			pos = input.find("\r\n"); line = input.substr(0, pos);	
 			if (this->parse_header_line(line))

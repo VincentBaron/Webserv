@@ -48,7 +48,7 @@ void	test(std::string input)
 	}
 }
 
-int main(int argc, char const *argv[])
+int main()
 {
     int server_fd, new_socket; long valread;
     struct sockaddr_in address;
