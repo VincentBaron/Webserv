@@ -6,7 +6,7 @@
 #    By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/03/01 13:03:47 by vincentbaro       #+#    #+#              #
-#    Updated: 2022/03/07 10:29:57 by vincentbaro      ###   ########.fr        #
+#    Updated: 2022/03/10 18:34:06 by vincentbaro      ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -16,6 +16,8 @@ DIR_O = objs
 
 SOURCES =   main.cpp \
 			utils.cpp \
+			parsing.cpp \
+			parsing_utils.cpp \
 
 
 SRCS = $(addprefix $(DIR_S)/,$(SOURCES))
@@ -26,10 +28,11 @@ HEADERS = headers
 
 NAME = webserv
 NAME_TEST = unit-test
+INCLUDES = -I includes/
 
 CC = clang++
 
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -g3 #-fsanitize=address
+# CFLAGS = -Wall -Wextra -Werror -std=c++98 -g3 #-fsanitize=address
 
 all: $(NAME)
 
@@ -38,7 +41,7 @@ $(DIR_O)/%.o: $(DIR_S)/%.cpp
 	$(CC) $(CFLAGS) -o $@ -c $<
 
 $(NAME): $(OBJS)
-		$(CC) $(CFLAGS) $^ -o $@
+		$(CC) $(INCLUDES) $(CFLAGS) $^ -o $@
 
 unit-test: $(NAME_TEST)
 

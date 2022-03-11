@@ -1,4 +1,4 @@
-#include "Parsing.hpp"
+#include "../includes/Parsing.hpp"
 #include <fstream>
 
 location_s		parse_location(std::ifstream & conf_file, std::string line)
