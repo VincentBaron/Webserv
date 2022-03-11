@@ -169,3 +169,16 @@ const std::string			server_config::get_index(int s, int l) const
 	else
 		return server[s].location[l].index;
 }
+
+bool						server_config::if_autoindex_on(int s, int l) const
+{
+	if (l == -1)
+		return (server[s].autoindex_on());
+	else
+		return (server[s].location[l].autoindex_on());
+}
+
+const std::string			server_config::get_server_name(int s) const
+{
+	return server[s].server_name[0];
+}

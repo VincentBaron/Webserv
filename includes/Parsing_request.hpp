@@ -20,10 +20,12 @@ class client_request
 		std::string			http_version;
 		int					port;
 		std::map<std::string, std::string>		header_fields; //important: host
-
 		std::string			body;
-
 		std::string			error;
+
+		//Variable used for the reponse
+		
+		int					reponse_len;
 
 	public:
 		client_request() : port(8080), error("200"),  _r_body(false), server_pos(-1), location_pos(-1)
@@ -37,7 +39,7 @@ class client_request
 		void		set_port(int p) { port = p; }
 
 		void		parse_request(std::string input);
-		char *		process_request(server_config const server);
+		std::string	process_request(server_config const server);
 
 	private:
 
@@ -48,9 +50,9 @@ class client_request
 		
 
 
-		char *		process_get(server_config const server);
-		char *		process_post(server_config const server);
-		char *		process_delete(server_config const server);
+		std::string		process_get(server_config const server);
+		std::string		process_post(server_config const server);
+		std::string		process_delete(server_config const server);
 
 	private:
 		bool						_r_body;
