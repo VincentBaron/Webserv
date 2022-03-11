@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/11 10:57:30 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/11 11:23:58 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -25,6 +25,7 @@ class Socket
 {
 
 public:
+
 	// Constructors and destructor
 	Socket(void) : max_clients(30){};
 	virtual ~Socket(){};
@@ -56,10 +57,10 @@ public:
 
 			if ((listen(server_fd, 10)) < 0)
 				err_n_die("Listen error!!!");
-			server_fds.push_back(server_fd);
+			servers.push_back(server_fd);
 		}
-		// for (std::vector<int>::iterator ite = server_fds.begin(); ite != server_fds.end(); ite++)
-		// 	std::cout << "server_fds" << *ite << std::endl;
+		// for (std::vector<int>::iterator ite = servers.begin(); ite != servers.end(); ite++)
+		// 	std::cout << "servers" << *ite << std::endl;
 	}
 
 	int accept_new_connecton(int server_socket)
@@ -90,7 +91,7 @@ public:
 	bool checkIsServer(int i)
 	{
 		
-		for (std::vector<int>::iterator ite = server_fds.begin(); ite != server_fds.end(); ite++)
+		for (std::vector<int>::iterator ite = servers.begin(); ite != servers.end(); ite++)
 		{
 			if (*ite == i)
 				return true;
@@ -104,7 +105,7 @@ public:
 		FD_ZERO(&current_sockets);
 		FD_ZERO(&ready_sockets);
 		int max_socket = -1;
-		for (std::vector<int>::iterator ite = server_fds.begin(); ite != server_fds.end(); ite++)
+		for (std::vector<int>::iterator ite = servers.begin(); ite != servers.end(); ite++)
 		{
 			FD_SET(*ite, &current_sockets);
 			if (*ite > max_socket)
@@ -140,8 +141,7 @@ public:
 	}
 
 private:
-	std::vector<int> server_fds;
-	std::vector<int> ports;
+	std::vector<int> servers;
 	int max_clients;
 };
 
