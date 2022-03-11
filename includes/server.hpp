@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/11 16:24:28 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/11 18:54:14 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,7 +26,6 @@ class Socket
 {
 
 public:
-
 	typedef std::pair<int, int> intPair;
 	typedef std::vector<intPair>::iterator iterator;
 	typedef std::vector<server_s>::iterator confIte;
@@ -44,6 +43,7 @@ public:
 	void initSocket(server_config &conf)
 	{
 		SA_IN servaddr;
+		int opt = TRUE;
 
 		server_config confFile = conf;
 		for (confIte ite = conf.server.begin(); ite != conf.server.end(); ite++)
@@ -51,6 +51,9 @@ public:
 			int server_fd;
 			if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
 				err_n_die("Can't create socket!!!");
+
+			if (setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, (char *)&opt, sizeof(opt)) < 0)
+				err_n_die("Error setsockopt!!!");
 
 			bzero(&servaddr, sizeof(servaddr));
 			servaddr.sin_family = AF_INET;
@@ -102,12 +105,12 @@ public:
 
 	iterator checkIsServer(int i)
 	{
-		
+
 		iterator ite;
 		for (ite = servers.begin(); ite != servers.end(); ite++)
 		{
 			if ((*ite).first == i)
-				break ;
+				break;
 		}
 		return ite;
 	}
@@ -151,7 +154,7 @@ public:
 						for (ite = clients.begin(); ite != clients.end(); ite++)
 						{
 							if ((*ite).first == i)
-								break ;
+								break;
 						}
 						handle_connection(ite, conf);
 						clients.erase(ite);
