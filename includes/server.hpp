@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/10 18:39:46 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/11 10:45:17 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -88,6 +88,7 @@ public:
 
 	bool checkIsServer(int i)
 	{
+		
 		for (std::vector<int>::iterator ite = server_fds.begin(); ite != server_fds.begin(); ite++)
 		{
 			if (*ite == i)
