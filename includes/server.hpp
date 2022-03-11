@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/11 11:23:58 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/11 11:44:34 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,6 +26,9 @@ class Socket
 
 public:
 
+	typedef std::pair<int, int> intPair;
+	typedef std::vector<intPair>::iterator iterator;
+	typedef std::vector<server_s>::iterator confIte;
 	// Constructors and destructor
 	Socket(void) : max_clients(30){};
 	virtual ~Socket(){};
@@ -41,7 +44,7 @@ public:
 	{
 		SA_IN servaddr;
 
-		for (std::vector<server_s>::iterator ite = conf.server.begin(); ite != conf.server.end(); ite++)
+		for (confIte ite = conf.server.begin(); ite != conf.server.end(); ite++)
 		{
 			int server_fd;
 			if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0)
@@ -57,13 +60,13 @@ public:
 
 			if ((listen(server_fd, 10)) < 0)
 				err_n_die("Listen error!!!");
-			servers.push_back(server_fd);
+			servers.push_back(std::make_pair(server_fd, ite->port[0]));
 		}
 		// for (std::vector<int>::iterator ite = servers.begin(); ite != servers.end(); ite++)
 		// 	std::cout << "servers" << *ite << std::endl;
 	}
 
-	int accept_new_connecton(int server_socket)
+	int accept_new_connection(int server_socket)
 	{
 		int addr_size = sizeof(SA_IN);
 		int client_socket;
@@ -73,30 +76,31 @@ public:
 		return (client_socket);
 	}
 
-	void handle_connection(int client_socket)
+	void handle_connection(iterator clientIte)
 	{
 		char reqBuffer[MAX_LINE + 1];
 		std::string buff;
 
 		memset(reqBuffer, 0, strlen(reqBuffer));
-		recv(client_socket, reqBuffer, 1000, 0);
+		recv((*clientIte).first, reqBuffer, 1000, 0);
 		std::cout << "" << reqBuffer << std::endl;
 		// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
 		// manage_request();
 		buff = "HTTP/1.0 200 OK\r\n\r\nHello";
-		send(client_socket, buff.c_str(), buff.size(), 0);
-		close(client_socket);
+		send((*clientIte).first, buff.c_str(), buff.size(), 0);
+		close((*clientIte).first);
 	}
 
-	bool checkIsServer(int i)
+	iterator checkIsServer(int i)
 	{
 		
-		for (std::vector<int>::iterator ite = servers.begin(); ite != servers.end(); ite++)
+		iterator ite;
+		for (ite = servers.begin(); ite != servers.end(); ite++)
 		{
-			if (*ite == i)
-				return true;
+			if ((*ite).first == i)
+				break ;
 		}
-		return false;
+		return ite;
 	}
 
 	void waitForConnections(void)
@@ -105,11 +109,11 @@ public:
 		FD_ZERO(&current_sockets);
 		FD_ZERO(&ready_sockets);
 		int max_socket = -1;
-		for (std::vector<int>::iterator ite = servers.begin(); ite != servers.end(); ite++)
+		for (iterator ite = servers.begin(); ite != servers.end(); ite++)
 		{
-			FD_SET(*ite, &current_sockets);
-			if (*ite > max_socket)
-				max_socket = *ite;
+			FD_SET((*ite).first, &current_sockets);
+			if ((*ite).first > max_socket)
+				max_socket = (*ite).first;
 		}
 		while (1)
 		{
@@ -123,16 +127,25 @@ public:
 			{
 				if (FD_ISSET(i, &ready_sockets))
 				{
-					if (checkIsServer(i))
+					iterator serverIte = checkIsServer(i);
+					if (serverIte != servers.end())
 					{
-						int client_socket = accept_new_connecton(i);
+						int client_socket = accept_new_connection(i);
+						clients.push_back(std::make_pair(client_socket, (*serverIte).second));
 						FD_SET(client_socket, &current_sockets);
 						if (client_socket > max_socket)
 							max_socket = client_socket;
 					}
 					else
 					{
-						handle_connection(i);
+						iterator ite;
+						for (ite = clients.begin(); ite != clients.end(); ite++)
+						{
+							if ((*ite).first == i)
+								break ;
+						}
+						handle_connection(ite);
+						clients.erase(ite);
 						FD_CLR(i, &current_sockets);
 					}
 				}
@@ -141,7 +154,8 @@ public:
 	}
 
 private:
-	std::vector<int> servers;
+	std::vector<intPair> servers;
+	std::vector<intPair> clients;
 	int max_clients;
 };
 
