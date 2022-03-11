@@ -1,12 +1,12 @@
 #include "Parsing_request.hpp"
 
-char*		client_request::process_request(server_config const data)
+std::string		client_request::process_request(server_config const data)
 {
 //......Serching a server matching the port
 
-	for (int i = 0; i < data.server.size(); i++)
+	for (size_t i = 0; i < data.server.size(); i++)
 	{
-		for (int j = 0; j < data.server[i].port.size(); j++)
+		for (size_t j = 0; j < data.server[i].port.size(); j++)
 			if (data.server[i].port[j] == this->port)
 				this->server_pos = i;			
 	}
@@ -14,6 +14,7 @@ char*		client_request::process_request(server_config const data)
 	if (this->server_pos == -1) //internal error, something wrong with port;
 	{
 		this->error = "500";
+		std::cout << "ERROR HERE:" << this->error << std::endl;
 		return NULL; //----WARNING-----  write return_error() function
 	}
 
@@ -22,7 +23,7 @@ char*		client_request::process_request(server_config const data)
 	std::string		relative_path;
 	std::string		location_path;
 
-	for (int i = 0; i < data.server[this->server_pos].location.size(); i++)
+	for (size_t i = 0; i < data.server[this->server_pos].location.size(); i++)
 	{
 		location_path = data.server[this->server_pos].location[i].path;
 		relative_path = this->request_target.substr(0, location_path.size());
@@ -37,7 +38,7 @@ char*		client_request::process_request(server_config const data)
 
 	bool	flag = true;
 
-	for (int i = 0; i < data.get_allowed_methods(server_pos, location_pos).size(); i++)
+	for (size_t i = 0; i < data.get_allowed_methods(server_pos, location_pos).size(); i++)
 	{
 		if (this->method == data.get_allowed_methods(server_pos, location_pos)[i])	
 			flag = false;
@@ -46,6 +47,7 @@ char*		client_request::process_request(server_config const data)
 	if (flag)
 	{
 		this->error = "500";
+		std::cout << "ERROR HERE:" << this->error << std::endl;
 		return NULL; //----WARNING-----  write return_error() function
 	}
 
@@ -53,10 +55,10 @@ char*		client_request::process_request(server_config const data)
 
 	if (this->method == "GET")
 		return	this->process_get(data);
-	else if (this->method == "POST")
-		return	this->process_post(data);
-	else if (this->method == "DELETE")
-		return	this->process_delete(data);
+	/* else if (this->method == "POST") */
+	/* 	return	this->process_post(data); */
+	/* else if (this->method == "DELETE") */
+	/* 	return	this->process_delete(data); */
 
 	return NULL;
 }
@@ -77,49 +79,116 @@ std::string		ft_gettime()
 	return t_str;
 }
 
-char *		client_request::process_get(server_config const server)
+bool		path_is_dir(std::string path)
+{
+	struct stat		s;
+	if (lstat(path.c_str(), &s) == 0)
+	{
+		if (S_ISDIR(s.st_mode))
+			return true;
+		else
+			return false;
+	}
+	return false;
+}
+
+bool		path_is_file(std::string path)
+{
+	struct stat		s;
+	if (lstat(path.c_str(), &s) == 0)
+	{
+		if (S_ISREG(s.st_mode))
+			return true;
+		else
+			return false;
+	}
+	return false;
+}
+
+std::string	client_request::process_get(server_config const config)
 {
 	std::string		ret;
 	std::ifstream	req_file;	
 	std::string		reponse_body;
-	std::string		file_path = server.get_root(this->server_pos, this->location_pos) + this->request_target; 
+	std::string		file_path = config.get_root(this->server_pos, this->location_pos) + this->request_target; 
 
-	if (file_path is a dir)
+	if (path_is_dir(file_path))
 	{
-		if (autoindex_on())
+		if (config.if_autoindex_on(this->server_pos, this->location_pos))
 		{}
 		else
-		{}
+		{
+			if (this->request_target == config.get_uri(this->server_pos, this->location_pos))
+				file_path += config.get_index(this->server_pos, this->location_pos);
+			else
+				file_path.clear();	
+		}
 	}
-	else if (file_path is a file)
-	{
-	
-	}
+	/* else if (file_path is a file) */ //I think that i dont need to do anythng if filepath is a file
 
-	req_file.open(file_path);
-	if (!req_file.is_open())
+	//NEED TO DO ADD ERROR REQUESTS FOR FAVICON.
+	
+	if (!file_path.empty())
 	{
-		this->error = "404";
-		return NULL; //----WARNING-----  write return_error() function
+		req_file.open(file_path.c_str());
+		if (!req_file.is_open())
+		{
+			this->error = "404";
+			std::cout << "ERROR HERE:" << this->error << std::endl;
+			return NULL; //----WARNING-----  write return_error() function
+		}
+		else
+		{
+			std::ostringstream	ss;
+			ss << req_file.rdbuf();
+			reponse_body = ss.str();
+		}
+		req_file.close();
 	}
-	else
-	{
-		std::ostringstream	ss;
-		ss << req_file.rdbuf();
-		reponse_body = ss.str();
-	}
-	req_file.close();
 	
 	std::string		date = ft_gettime();
 
-	ret = this->
+	//saving Content Length as an std::string
 
-	return NULL;
+	std::stringstream content_len;
+	content_len << reponse_body.size();
+
+	//searching for content type
+	
+	std::map<std::string, std::string>::iterator	it;
+	std::string										content_type;
+
+	for (it = this->file_types.begin(); it != this->file_types.end(); ++it)
+	{
+		std::string		extension;
+		size_t	pos = file_path.find_last_of(".");
+		if (pos != std::string::npos)
+			extension = file_path.substr(pos);
+		if (it->first == extension)
+			content_type = it->second;
+	}
+
+	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n";
+	ret += "Date: " + date + "\r\n";
+	ret += "Server: Webserv\r\n";
+	ret += "Conection: Closed\r\n";
+	ret += "Content-Length: " + std::string(content_len.str()) + "\r\n";
+	ret += "Content-Type: " + content_type + "\r\n";
+	ret += "\r\n";
+	ret += reponse_body;
+
+	this->reponse_len = ret.size();
+
+	/* std::cout << ret << std::endl; */
+
+	/* const char* c = ret.c_str(); */
+
+	return ret;
 }
 
 int			client_request::parse_line_request(std::string line)
 {
-	int				pos;
+	size_t			pos;
 	std::string		tmp;
 
 	//.......line structure [method] SP [request-target] SP [http-version]
@@ -137,6 +206,7 @@ int			client_request::parse_line_request(std::string line)
 		this->method = "POST";
 	else if (tmp == "DELETE")
 		this->method = "DELETE";
+	else
 	{
 		this->error = "405";
 		return 1;
@@ -160,7 +230,7 @@ int			client_request::parse_line_request(std::string line)
 
 int			client_request::parse_header_line(std::string line)
 {
-	int				pos;	
+	size_t			pos;	
 	std::pair<std::string, std::string>		field;
 
 //..........line structure [field-name] ":" OWS [field-value] OWS
@@ -189,7 +259,7 @@ void		client_request::parse_request(std::string input)
 {	
 	std::string		line;
 	std::string		tmp;
-	int				pos;
+	size_t			pos;
 	
 	if (this->reading_body())
 		this->body += input;
@@ -201,7 +271,7 @@ void		client_request::parse_request(std::string input)
 			return ;
 		input.erase(0, pos + 2);
 
-		while ((pos = input.find("\r\n")) != std::string::npos && input[pos + 2] != std::string::npos)
+		while ((pos = input.find("\r\n")) != std::string::npos && (pos+ 2) < input.size())
 		{
 			pos = input.find("\r\n"); line = input.substr(0, pos);	
 			if (this->parse_header_line(line))

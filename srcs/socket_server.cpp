@@ -10,7 +10,7 @@
 
 #define PORT 8080
 
-void	test(std::string input)
+client_request	test(std::string input)
 {
 	/* int		pos; */
 	/* std::string		line; */
@@ -46,15 +46,22 @@ void	test(std::string input)
 	{
 		std::cout << first->first << ": " << first->second << std::endl;
 	}
+
+	return req;
 }
 
-int main(int argc, char const *argv[])
+int main(int argc, char **argv)
 {
     int server_fd, new_socket; long valread;
     struct sockaddr_in address;
     int addrlen = sizeof(address);
+
+
+	client_request	req;
+	server_config	server_conf;
+	parsing(argc, argv, server_conf);
     
-    char hello[] = "Hello from server";
+    /* char hello[] = "Hello from server"; */
     
     // Creating socket file descriptor
     if ((server_fd = socket(AF_INET, SOCK_STREAM, 0)) == 0)
@@ -95,8 +102,13 @@ int main(int argc, char const *argv[])
 		std::cout << ".............RAW.............." << std::endl << std::endl;
         printf("%s\n",buffer);
 		std::cout << ".............PARSED.............." << std::endl << std::endl;
-		test(buffer);
-        write(new_socket , hello , strlen(hello));
+		req = test(buffer);
+		std::string reponse = req.process_request(server_conf);
+		/* const char * reponse = req.process_request(server_conf); */
+		std::cout << ".............REPONSE.............." << std::endl << std::endl;
+        /* write(1 , reponse.c_str() , req.reponse_len); */
+        write(new_socket , reponse.c_str() , req.reponse_len);
+        /* write(new_socket , hello , 17); */
         printf("------------------Hello message sent-------------------\n");
         close(new_socket);
     }

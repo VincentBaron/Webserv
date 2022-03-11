@@ -4,7 +4,7 @@
 location_s		parse_location(std::ifstream & conf_file, std::string line)
 {
 	location_s		ret;
-	int				pos;
+	size_t			pos;
 
 	line.erase(0, 8);			
 	pos = line.find_first_not_of(" \t");
@@ -14,7 +14,7 @@ location_s		parse_location(std::ifstream & conf_file, std::string line)
 	if (pos == std::string::npos)              //error if there is not "{"
 	{
 		std::cout << "Syntax error:" << line << std::endl;
-		exit(1);
+		_exit(1);
 	}
 
 	line.erase(pos);									//erase "{" and last espace if it exists	
@@ -35,7 +35,7 @@ location_s		parse_location(std::ifstream & conf_file, std::string line)
 		else if (line.compare(0, 8, "location") == 0)				//if location inside location: error
 		{
 			std::cout << "Syntax error:" << line << std::endl;
-			exit(1);
+			_exit(1);
 		}
 		else if (line.compare(0, 12, "limit_except") == 0)			//parse allowed methods
 			ret.allowed_methods = parse_methods(line);
@@ -52,7 +52,7 @@ void	parse_server(std::ifstream & conf_file, server_config & data)
 {
 	server_s	tmp;
 	std::string	line;	
-	int			pos;
+	size_t		pos;
 	
 	char		*pwd = getcwd(NULL, 0);
 	if (pwd)
@@ -110,17 +110,15 @@ void	parsing(int ac, char **av, server_config & data)
 {
 	std::ifstream	conf_file;
 	std::string		line;
-	int				pos;
+	size_t			pos;
 
 	if (ac == 1)
 	{
 		std::cout << "Need configuration file" << std::endl;
-		exit(1);
+		_exit(1);
 	}
 
-	std::string		name(av[1]);
-
-	conf_file.open(name);
+	conf_file.open(av[1]);
 	if (conf_file.is_open())
 	{
 		while (conf_file)
@@ -136,7 +134,7 @@ void	parsing(int ac, char **av, server_config & data)
 	else
 	{
 		std::cout << "Could not open file\n";
-		exit(1);
+		_exit(1);
 	}
 }
 
@@ -170,4 +168,17 @@ const std::string			server_config::get_index(int s, int l) const
 		return server[s].index;
 	else
 		return server[s].location[l].index;
+}
+
+bool						server_config::if_autoindex_on(int s, int l) const
+{
+	if (l == -1)
+		return (server[s].autoindex_on());
+	else
+		return (server[s].location[l].autoindex_on());
+}
+
+const std::string			server_config::get_server_name(int s) const
+{
+	return server[s].server_name[0];
 }
