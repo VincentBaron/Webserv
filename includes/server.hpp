@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/11 11:44:34 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/11 15:44:06 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #define SERVER_HPP
 #include "common.hpp"
 #include "Parsing.hpp"
+#include "Parsing_request.hpp"
 #define TRUE 1
 #define FALSE 0
 #define PORT 8888
@@ -44,6 +45,7 @@ public:
 	{
 		SA_IN servaddr;
 
+		server_config confFile = conf;
 		for (confIte ite = conf.server.begin(); ite != conf.server.end(); ite++)
 		{
 			int server_fd;
@@ -80,10 +82,14 @@ public:
 	{
 		char reqBuffer[MAX_LINE + 1];
 		std::string buff;
+		client_request clientReq;
 
 		memset(reqBuffer, 0, strlen(reqBuffer));
 		recv((*clientIte).first, reqBuffer, 1000, 0);
 		std::cout << "" << reqBuffer << std::endl;
+		clientReq.set_port((*clientIte).second);
+		clientReq.parse_request(reqBuffer);
+		clientReq.process_request(confFile);
 		// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
 		// manage_request();
 		buff = "HTTP/1.0 200 OK\r\n\r\nHello";
@@ -156,6 +162,7 @@ public:
 private:
 	std::vector<intPair> servers;
 	std::vector<intPair> clients;
+	server_config confFile;
 	int max_clients;
 };
 
