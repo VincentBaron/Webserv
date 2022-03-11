@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/11 15:44:06 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/11 16:09:10 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -83,17 +83,18 @@ public:
 		char reqBuffer[MAX_LINE + 1];
 		std::string buff;
 		client_request clientReq;
+		std::string response;
 
-		memset(reqBuffer, 0, strlen(reqBuffer));
-		recv((*clientIte).first, reqBuffer, 1000, 0);
+		memset(reqBuffer, 0, MAX_LINE + 1);
+		recv((*clientIte).first, reqBuffer, MAX_LINE + 1, 0);
 		std::cout << "" << reqBuffer << std::endl;
+		std::cout << "client port: " << (*clientIte).second << std::endl;
 		clientReq.set_port((*clientIte).second);
 		clientReq.parse_request(reqBuffer);
-		clientReq.process_request(confFile);
+		response = clientReq.process_request(confFile);
 		// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
 		// manage_request();
-		buff = "HTTP/1.0 200 OK\r\n\r\nHello";
-		send((*clientIte).first, buff.c_str(), buff.size(), 0);
+		send((*clientIte).first, response.c_str(), response.size(), 0);
 		close((*clientIte).first);
 	}
 
