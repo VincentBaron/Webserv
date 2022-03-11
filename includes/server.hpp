@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/11 10:45:17 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/11 10:57:30 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -49,7 +49,6 @@ public:
 			bzero(&servaddr, sizeof(servaddr));
 			servaddr.sin_family = AF_INET;
 			servaddr.sin_addr.s_addr = htonl(INADDR_ANY);
-			std::cout << "port in conf struct: " << ite->port[0] << std::endl;
 			servaddr.sin_port = htons(ite->port[0]);
 
 			if ((bind(server_fd, (SA *)&servaddr, sizeof(servaddr))) < 0)
@@ -59,6 +58,8 @@ public:
 				err_n_die("Listen error!!!");
 			server_fds.push_back(server_fd);
 		}
+		// for (std::vector<int>::iterator ite = server_fds.begin(); ite != server_fds.end(); ite++)
+		// 	std::cout << "server_fds" << *ite << std::endl;
 	}
 
 	int accept_new_connecton(int server_socket)
@@ -89,7 +90,7 @@ public:
 	bool checkIsServer(int i)
 	{
 		
-		for (std::vector<int>::iterator ite = server_fds.begin(); ite != server_fds.begin(); ite++)
+		for (std::vector<int>::iterator ite = server_fds.begin(); ite != server_fds.end(); ite++)
 		{
 			if (*ite == i)
 				return true;
@@ -101,6 +102,7 @@ public:
 	{
 		fd_set current_sockets, ready_sockets;
 		FD_ZERO(&current_sockets);
+		FD_ZERO(&ready_sockets);
 		int max_socket = -1;
 		for (std::vector<int>::iterator ite = server_fds.begin(); ite != server_fds.end(); ite++)
 		{
@@ -108,7 +110,6 @@ public:
 			if (*ite > max_socket)
 				max_socket = *ite;
 		}
-		
 		while (1)
 		{
 			// FD_ZERO(&ready_sockets);
