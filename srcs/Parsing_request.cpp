@@ -4,6 +4,7 @@ std::string		client_request::process_request(server_config const data)
 {
 //......Serching a server matching the port
 
+	std::cout << "data: " << &data << std::endl;
 	for (size_t i = 0; i < data.server.size(); i++)
 	{
 		for (size_t j = 0; j < data.server[i].port.size(); j++)

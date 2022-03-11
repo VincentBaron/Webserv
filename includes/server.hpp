@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/11 16:09:10 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/11 16:24:28 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ public:
 
 	// Member functions
 
-	void initSocket(server_config conf)
+	void initSocket(server_config &conf)
 	{
 		SA_IN servaddr;
 
@@ -78,7 +78,7 @@ public:
 		return (client_socket);
 	}
 
-	void handle_connection(iterator clientIte)
+	void handle_connection(iterator clientIte, server_config &conf)
 	{
 		char reqBuffer[MAX_LINE + 1];
 		std::string buff;
@@ -90,8 +90,10 @@ public:
 		std::cout << "" << reqBuffer << std::endl;
 		std::cout << "client port: " << (*clientIte).second << std::endl;
 		clientReq.set_port((*clientIte).second);
+		std::cout << "yalaaaaaaaaaaa" << std::endl;
 		clientReq.parse_request(reqBuffer);
-		response = clientReq.process_request(confFile);
+		std::cout << "yalaaaaaaaaaaa" << std::endl;
+		response = clientReq.process_request(conf);
 		// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
 		// manage_request();
 		send((*clientIte).first, response.c_str(), response.size(), 0);
@@ -110,7 +112,7 @@ public:
 		return ite;
 	}
 
-	void waitForConnections(void)
+	void waitForConnections(server_config &conf)
 	{
 		fd_set current_sockets, ready_sockets;
 		FD_ZERO(&current_sockets);
@@ -151,7 +153,7 @@ public:
 							if ((*ite).first == i)
 								break ;
 						}
-						handle_connection(ite);
+						handle_connection(ite, conf);
 						clients.erase(ite);
 						FD_CLR(i, &current_sockets);
 					}
