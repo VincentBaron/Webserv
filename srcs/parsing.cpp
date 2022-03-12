@@ -41,6 +41,8 @@ location_s		parse_location(std::ifstream & conf_file, std::string line)
 			ret.allowed_methods = parse_methods(line);
 		else if (line.compare(0, 5, "index") == 0) 					//parse index
 			ret.index = parse_index(line);
+		else if (line.compare(0, 10, "error_page") == 0) 			//parse error_page
+			ret.error_page = parse_error_page(line);
 
 		std::getline(conf_file, line);
 	}
@@ -102,6 +104,8 @@ void	parse_server(std::ifstream & conf_file, server_config & data)
 
 		std::getline(conf_file, line);
 	}
+
+	tmp.complete_locations();
 	
 	data.server.push_back(tmp); //add the server to data
 }
@@ -181,4 +185,33 @@ bool						server_config::if_autoindex_on(int s, int l) const
 const std::string			server_config::get_server_name(int s) const
 {
 	return server[s].server_name[0];
+}
+
+const std::pair<std::string, std::string>	server_config::get_error_page(int s, int l) const
+{
+	if (l == -1)
+		return server[s].error_page;
+	else
+		return server[s].location[l].error_page;
+}
+
+void						server_s::complete_locations(void)
+{
+	std::vector<location_s>::iterator	ite;
+
+	for (ite = this->location.begin(); ite != this->location.end(); ++ite)
+	{
+		if (ite->root.empty())
+			ite->root = this->root + ite->path;
+		if (ite->index.empty())
+			ite->index = this->index;
+		if (ite->autoindex.empty())
+			ite->autoindex = this->autoindex;
+		if (ite->allowed_methods.empty())
+			ite->allowed_methods = this->allowed_methods;
+		if (ite->client_max_body_size == -1)
+			ite->client_max_body_size = this->client_max_body_size;
+		if (ite->error_page.first.empty())
+			ite->error_page = this->error_page;
+	}
 }

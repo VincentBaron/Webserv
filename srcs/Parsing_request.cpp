@@ -2,6 +2,7 @@
 
 std::string		client_request::process_request(server_config const data)
 {
+
 //......Serching a server matching the port
 
 	for (size_t i = 0; i < data.server.size(); i++)
@@ -16,8 +17,7 @@ std::string		client_request::process_request(server_config const data)
 	if (this->server_pos == -1) //internal error, something wrong with port;
 	{
 		this->error = "500";
-		std::cout << "ERROR HERE:" << this->error << std::endl;
-		return NULL; //----WARNING-----  write return_error() function
+		return process_error(data); 
 	}
 
 //.....Searching if ther is a location matching URL inside the server
@@ -48,9 +48,8 @@ std::string		client_request::process_request(server_config const data)
 
 	if (flag)
 	{
-		this->error = "500";
-		std::cout << "ERROR HERE:" << this->error << std::endl;
-		return NULL; //----WARNING-----  write return_error() function
+		this->error = "405";
+		return process_error(data); 
 	}
 
 //..........Select fuction to use
@@ -112,32 +111,46 @@ std::string	client_request::process_get(server_config const config)
 	std::string		ret;
 	std::ifstream	req_file;	
 	std::string		reponse_body;
-	std::string		file_path = config.get_root(this->server_pos, this->location_pos) + this->request_target; 
+	std::string		file_path = config.get_root(this->server_pos, this->location_pos); 
+
+//.........Some errors can happen before this function
+
+	if (this->error != "200")
+		return process_error(config);
+
+	if (this->location_pos != -1)
+		file_path += this->request_target.substr(config.server[this->server_pos].location[this->location_pos].path.size());
+	else
+		file_path += this->request_target;
 
 	if (path_is_dir(file_path))
 	{
+		if (file_path[file_path.size() - 1] != '/')
+			file_path += "/";
 		if (config.if_autoindex_on(this->server_pos, this->location_pos))
 		{}
 		else
 		{
-			if (this->request_target == config.get_uri(this->server_pos, this->location_pos))
-				file_path += config.get_index(this->server_pos, this->location_pos);
-			else
-				file_path.clear();	
+			file_path += config.get_index(this->server_pos, this->location_pos);
+			if (path_is_dir(file_path))
+				file_path.clear();
+			else if (!path_is_file(file_path))
+				file_path.clear();
 		}
 	}
-	/* else if (file_path is a file) */ //I think that i dont need to do anythng if filepath is a file
+	else if (!path_is_file(file_path))
+	{
+			this->error = "404";
+			return process_error(config);
+	}
 
-	//NEED TO DO ADD ERROR REQUESTS FOR FAVICON.
-	
 	if (!file_path.empty())
 	{
 		req_file.open(file_path.c_str());
 		if (!req_file.is_open())
 		{
-			this->error = "404";
-			std::cout << "ERROR HERE:" << this->error << std::endl;
-			return NULL; //----WARNING-----  write return_error() function
+			this->error = "403";
+			return process_error(config); 
 		}
 		else
 		{
@@ -181,9 +194,64 @@ std::string	client_request::process_get(server_config const config)
 
 	this->reponse_len = ret.size();
 
-	/* std::cout << ret << std::endl; */
+	return ret;
+}
 
-	/* const char* c = ret.c_str(); */
+std::string		client_request::process_error(server_config const config)
+{
+	std::string		ret;
+	std::string		error_body;
+	std::pair<std::string, std::string>		error_p;
+
+	if (this->error != "500")
+		error_p = config.get_error_page(this->server_pos, this->location_pos);
+
+	if (this->error == "500" || error_p.first.empty() || error_p.first != this->error)	
+	{
+		error_body = "<!doctype html>\n"; 
+		error_body += "<html>\n";
+		error_body += "<head>\n";
+		error_body += "<title>Webserv</title>\n";
+		error_body += "<body>\n";
+		error_body += "<p><strong>" + this->error + "</strong> " + this->error_reponse.find(this->error)->second + "</p>\n";
+		error_body += "</body>\n";
+		error_body += "</html>\n";
+	}
+	else
+	{
+		std::ifstream	error_file;
+
+		error_file.open(error_p.second.c_str());
+		if (!error_file.is_open())
+		{
+			this->error = "500";
+			return process_error(config);
+		}
+		else
+		{
+			std::ostringstream	ss;
+			ss << error_file.rdbuf();
+			error_body = ss.str();
+		}
+		error_file.close();
+		
+	}
+
+	std::string		date = ft_gettime();
+
+	//saving Content Length as an std::string
+
+	std::stringstream content_len;
+	content_len << error_body.size();
+
+	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n";
+	ret += "Date: " + date + "\r\n";
+	ret += "Server: Webserv\r\n";
+	ret += "Conection: Closed\r\n";
+	ret += "Content-Length: " + std::string(content_len.str()) + "\r\n";
+	ret += "Content-Type: text/html\r\n";
+	ret += "\r\n";
+	ret += error_body;
 
 	return ret;
 }

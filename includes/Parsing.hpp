@@ -17,13 +17,14 @@ class location_s // must construct with the values from the server
 		std::string							index;
 		std::string							autoindex;
 		std::vector<std::string>			allowed_methods;
+		std::pair<std::string, std::string>	error_page;
 		int									client_max_body_size;
 	
 	public:
-		location_s() : autoindex("off"), client_max_body_size(0) {
-			allowed_methods.push_back("GET");
-			allowed_methods.push_back("POST");
-			allowed_methods.push_back("DELETE");
+		location_s() : autoindex("off"), client_max_body_size(-1) {
+			/* allowed_methods.push_back("GET"); */
+			/* allowed_methods.push_back("POST"); */
+			/* allowed_methods.push_back("DELETE"); */
 		}
 		
 		bool	if_max_body_size() const { return (client_max_body_size != -1); }
@@ -56,6 +57,7 @@ class server_s
 		int		number_of_locations() const { return location.size(); }
 		bool	if_error_page() const { return (error_page.first.size() != 0); }
 		bool	autoindex_on() const { return (autoindex == "on"); }
+		void	complete_locations(void);
 };
 
 class server_config
@@ -69,6 +71,7 @@ class server_config
 		const std::string					get_uri(int s, int l) const;
 		const std::string					get_index(int s, int l) const;
 		const std::string					get_server_name(int s) const;
+		const std::pair<std::string, std::string>		get_error_page(int s, int l) const;
 		bool								if_autoindex_on(int s, int l) const;
 };
 

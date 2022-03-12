@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/11 18:54:14 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/12 00:37:12 by daprovin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -91,11 +91,8 @@ public:
 		memset(reqBuffer, 0, MAX_LINE + 1);
 		recv((*clientIte).first, reqBuffer, MAX_LINE + 1, 0);
 		std::cout << "" << reqBuffer << std::endl;
-		std::cout << "client port: " << (*clientIte).second << std::endl;
 		clientReq.set_port((*clientIte).second);
-		std::cout << "yalaaaaaaaaaaa" << std::endl;
 		clientReq.parse_request(reqBuffer);
-		std::cout << "yalaaaaaaaaaaa" << std::endl;
 		response = clientReq.process_request(conf);
 		// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
 		// manage_request();

@@ -47,12 +47,11 @@ class client_request
 		std::map<std::string, std::string>		initialize_error_reponse();
 		int										parse_line_request(std::string line);
 		int										parse_header_line(std::string line);
-		
-
 
 		std::string		process_get(server_config const server);
 		std::string		process_post(server_config const server);
 		std::string		process_delete(server_config const server);
+		std::string		process_error(server_config const server);
 
 	private:
 		bool						_r_body;
