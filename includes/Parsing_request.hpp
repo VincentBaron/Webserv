@@ -9,6 +9,8 @@
 # include <sstream>
 # include "Parsing.hpp"
 # include <ctime>
+# include <sys/types.h>
+# include <dirent.h>
 
 # define MAX_METHOD_SIZE 6
 
@@ -23,7 +25,7 @@ class client_request
 		std::string			body;
 		std::string			error;
 
-		//Variable used for the reponse
+		//Variable used for the response
 		
 		int					reponse_len;
 

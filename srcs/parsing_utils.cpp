@@ -1,6 +1,26 @@
 #include "../includes/Parsing.hpp"
 #include <fstream>
 
+std::string		parse_autoindex(std::string line)
+{
+	std::string		ret;
+	size_t			pos;
+
+	line.erase(0, 9);
+	pos = line.find_first_not_of(" \t");
+	line.erase(0, pos);
+	pos = line.find_first_of(';');
+
+	if (pos == std::string::npos)              //error if there is not ";"
+	{
+		std::cout << "Syntax error:" << line << std::endl;
+		_exit(1);
+	}
+	ret = line.substr(0, pos);
+
+	return ret;
+}
+
 std::string		parse_index(std::string	line)
 {
 	std::string		ret;

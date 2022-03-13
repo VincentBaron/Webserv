@@ -21,7 +21,7 @@ class location_s // must construct with the values from the server
 		int									client_max_body_size;
 	
 	public:
-		location_s() : autoindex("off"), client_max_body_size(-1) {
+		location_s() : client_max_body_size(-1) {
 			/* allowed_methods.push_back("GET"); */
 			/* allowed_methods.push_back("POST"); */
 			/* allowed_methods.push_back("DELETE"); */
@@ -46,7 +46,7 @@ class server_s
 		int										client_max_body_size;
 
 	public:
-		server_s() : autoindex("off") {
+		server_s() : autoindex("off"), client_max_body_size(100000) {
 			allowed_methods.push_back("GET");
 			allowed_methods.push_back("POST");
 			allowed_methods.push_back("DELETE");
@@ -83,5 +83,6 @@ std::pair<std::string, std::string>		parse_error_page(std::string line);
 int										parse_body_size(std::string	line);
 std::vector<std::string>				parse_methods(std::string line);
 std::string								parse_index(std::string	line);
+std::string								parse_autoindex(std::string line);
 
 #endif

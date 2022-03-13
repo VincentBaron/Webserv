@@ -112,6 +112,7 @@ std::string	client_request::process_get(server_config const config)
 	std::ifstream	req_file;	
 	std::string		reponse_body;
 	std::string		file_path = config.get_root(this->server_pos, this->location_pos); 
+	bool			autoindex_flag = false;
 
 //.........Some errors can happen before this function
 
@@ -128,7 +129,35 @@ std::string	client_request::process_get(server_config const config)
 		if (file_path[file_path.size() - 1] != '/')
 			file_path += "/";
 		if (config.if_autoindex_on(this->server_pos, this->location_pos))
-		{}
+		{
+			autoindex_flag = true;
+			DIR *dir;
+			struct dirent *ent;
+			if ((dir = opendir(file_path.c_str())) != NULL)
+			{
+
+				reponse_body = "<!DOCTYPE html><html><body>";
+
+				while ((ent = readdir(dir)) != NULL) {
+
+					reponse_body.append("<a href=\"" + this->request_target);
+					if (this->request_target[this->request_target.size() - 1] != '/')
+						reponse_body.append("/");
+					reponse_body.append(ent->d_name);
+					reponse_body.append("\">");
+					reponse_body.append(ent->d_name);
+					reponse_body.append("</a><br>");
+				}
+				closedir (dir);
+				reponse_body.append("</body></html>");
+
+			}
+			else
+			{
+				this->error = "401";
+				return process_error(config);
+			}
+		}
 		else
 		{
 			file_path += config.get_index(this->server_pos, this->location_pos);
@@ -144,7 +173,7 @@ std::string	client_request::process_get(server_config const config)
 			return process_error(config);
 	}
 
-	if (!file_path.empty())
+	if (!file_path.empty() && autoindex_flag == false)
 	{
 		req_file.open(file_path.c_str());
 		if (!req_file.is_open())

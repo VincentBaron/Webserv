@@ -43,6 +43,8 @@ location_s		parse_location(std::ifstream & conf_file, std::string line)
 			ret.index = parse_index(line);
 		else if (line.compare(0, 10, "error_page") == 0) 			//parse error_page
 			ret.error_page = parse_error_page(line);
+		else if (line.compare(0, 9, "autoindex") == 0)
+			ret.autoindex = parse_autoindex(line);
 
 		std::getline(conf_file, line);
 	}
@@ -99,6 +101,8 @@ void	parse_server(std::ifstream & conf_file, server_config & data)
 			tmp.index = parse_index(line);
 		else if (line.compare(0, 12, "limit_except") == 0)			//parse allowed methods
 			tmp.allowed_methods = parse_methods(line);
+		else if (line.compare(0, 9, "autoindex") == 0)
+			tmp.autoindex = parse_autoindex(line);
 		else if (line.compare(0, 8, "location") == 0)				//parse location
 			tmp.location.push_back(parse_location(conf_file, line));
 
