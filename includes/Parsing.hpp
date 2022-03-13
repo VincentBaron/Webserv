@@ -66,13 +66,14 @@ class server_config
 		std::vector<server_s>	server;
 
 	public:
+		bool								if_autoindex_on(int s, int l) const;
 		const std::vector<std::string>		get_allowed_methods(int s, int l) const;
 		const std::string					get_root(int s, int l) const;
 		const std::string					get_uri(int s, int l) const;
 		const std::string					get_index(int s, int l) const;
 		const std::string					get_server_name(int s) const;
+		int									get_server_max_body_size(int s, int l) const;
 		const std::pair<std::string, std::string>		get_error_page(int s, int l) const;
-		bool								if_autoindex_on(int s, int l) const;
 };
 
 void									parsing(int ac, char **av, server_config & data);

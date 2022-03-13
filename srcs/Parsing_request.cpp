@@ -53,8 +53,28 @@ std::string		client_request::process_request(server_config const data)
 	}
 
 //.......Check if content body size is too long
+		
+	std::map<std::string, std::string>::iterator	ite = this->header_fields.begin();
+	std::map<std::string, std::string>::iterator	last = this->header_fields.end();
+	int												body_size(-1);
 
+	for ( ; ite != last ; ++ite)
+	{
+		if (ite->first == "Content-Length")
+			body_size = atoi(ite->second.c_str());
+	}
 
+	if (this->method == "POST" && body_size == -1)	
+	{
+		this->error = "411";
+		return this->process_error(data);
+	}
+
+	if (body_size > data.get_server_max_body_size(this->server_pos, this->location_pos))
+	{
+		this->error = "413";
+		return this->process_error(data);
+	}
 
 //..........Select fuction to use
 
@@ -127,6 +147,8 @@ std::string	client_request::process_get(server_config const config)
 		file_path += this->request_target.substr(config.server[this->server_pos].location[this->location_pos].path.size());
 	else
 		file_path += this->request_target;
+
+	std::cout << "PATH: " << file_path << std::endl;
 
 	if (path_is_dir(file_path))
 	{
