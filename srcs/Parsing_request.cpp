@@ -58,8 +58,8 @@ std::string		client_request::process_request(server_config const data)
 		return	this->process_get(data);
 	/* else if (this->method == "POST") */
 	/* 	return	this->process_post(data); */
-	/* else if (this->method == "DELETE") */
-	/* 	return	this->process_delete(data); */
+	else if (this->method == "DELETE")
+		return	this->process_delete(data);
 
 	return NULL;
 }
@@ -218,6 +218,50 @@ std::string	client_request::process_get(server_config const config)
 	ret += "Conection: Closed\r\n";
 	ret += "Content-Length: " + std::string(content_len.str()) + "\r\n";
 	ret += "Content-Type: " + content_type + "\r\n";
+	ret += "\r\n";
+	ret += reponse_body;
+
+	this->reponse_len = ret.size();
+
+	return ret;
+}
+
+std::string		client_request::process_delete(server_config const config)
+{
+	std::string		ret;
+	std::string		reponse_body;
+	std::string		file_path = config.get_root(this->server_pos, this->location_pos); 
+
+	if (this->error != "200")
+		return process_error(config);
+			
+	if (this->location_pos != -1)
+		file_path += this->request_target.substr(config.server[this->server_pos].location[this->location_pos].path.size());
+	else
+		file_path += this->request_target;
+
+	if (this->request_target == "/")
+	{
+		this->error = "204";
+		return process_error(config);
+	}
+	if (remove(file_path.c_str()) != 0)
+	{
+		this->error = "204";
+		return process_error(config);
+	}
+
+	std::string		date = ft_gettime();
+
+	std::stringstream	content_length;
+	reponse_body = "<h1>File deleted.<h1>";
+	content_length << reponse_body.length();
+
+	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n";
+	ret += "Date: " + date + "\r\n";
+	ret += "Server: Webserv\r\n";
+	ret += "Content-Length: " + std::string(content_length.str()) + "\r\n";
+	ret += "Content-Type: text/html\r\n";
 	ret += "\r\n";
 	ret += reponse_body;
 
