@@ -210,9 +210,11 @@ std::string	client_request::process_get(server_config const config)
 			extension = file_path.substr(pos);
 		if (it->first == extension)
 			content_type = it->second;
+		// else if (extension == ".php")
+			// std::string response = manege_cgi();
 	}
 
-	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n";
+	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n"; 
 	ret += "Date: " + date + "\r\n";
 	ret += "Server: Webserv\r\n";
 	ret += "Conection: Closed\r\n";
