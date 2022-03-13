@@ -46,6 +46,10 @@ client_request	test(std::string input)
 	{
 		std::cout << first->first << ": " << first->second << std::endl;
 	}
+	if (req.body.size() > 0)
+	{
+		std::cout << std::endl << req.body << std::endl;
+	}
 
 	return req;
 }

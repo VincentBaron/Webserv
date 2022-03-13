@@ -52,6 +52,10 @@ std::string		client_request::process_request(server_config const data)
 		return process_error(data); 
 	}
 
+//.......Check if content body size is too long
+
+
+
 //..........Select fuction to use
 
 	if (this->method == "GET")
@@ -210,7 +214,7 @@ std::string	client_request::process_get(server_config const config)
 			extension = file_path.substr(pos);
 		if (it->first == extension)
 			content_type = it->second;
-	}
+	}                               //need to add 415 error if extension not found
 
 	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n";
 	ret += "Date: " + date + "\r\n";
@@ -404,31 +408,29 @@ void		client_request::parse_request(std::string input)
 	std::string		tmp;
 	size_t			pos;
 	
-	if (this->reading_body())
-		this->body += input;
-	else
-	{
+	/* if (this->reading_body()) */
+	/* 	this->body += input; */
+	/* else */
+	/* { */
 		pos = input.find("\r\n");
 		line = input.substr(0, pos);
 		if (this->parse_line_request(line))
 			return ;
 		input.erase(0, pos + 2);
 
-		while ((pos = input.find("\r\n")) != std::string::npos && (pos+ 2) < input.size())
+		while ((pos = input.find("\r\n")) != std::string::npos && (pos + 2) < input.size() && pos != 0)
 		{
 			pos = input.find("\r\n"); line = input.substr(0, pos);	
 			if (this->parse_header_line(line))
 				return ;
 			input.erase(0, pos + 2);
-			//...........Postman para ver una post this->..........
-			/* if (input[0] == '\n') */
-			/* { */
-			/* 	input.erase(0, 1); */
-			/* 	this->body += input; */
-			/* 	this->set_rbody(true); */
-			/* } */
 		}
-	}
+		if (pos == 0)
+		{
+			input.erase(0, 2);
+			this->body = input;
+		}
+	/* } */
 }
 
 std::map<std::string, std::string>		client_request::initialize_file_types()
