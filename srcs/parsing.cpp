@@ -119,14 +119,33 @@ void	parsing(int ac, char **av, server_config & data)
 	std::ifstream	conf_file;
 	std::string		line;
 	size_t			pos;
+	std::string		name;
 
-	if (ac == 1)
+	if (ac > 2)
 	{
-		std::cout << "Need configuration file" << std::endl;
+		std::cout << "Too many arguments: Use --help flag." << std::endl;
 		_exit(1);
 	}
+	else if (ac == 1)	
+	{
+		char		*pwd = getcwd(NULL, 0);
+		if (pwd)
+		{
+			name = pwd;
+			name += "/conf/default.conf";
+			free(pwd);
+		}
+	}
+	else
+		name = av[1];
 
-	conf_file.open(av[1]);
+	if (name == "--help")
+	{
+		std::cout << "usage: ./webserv [config_file]" << std::endl;
+		_exit(0);
+	}
+
+	conf_file.open(name.c_str());
 	if (conf_file.is_open())
 	{
 		while (conf_file)
@@ -197,6 +216,14 @@ const std::pair<std::string, std::string>	server_config::get_error_page(int s, i
 		return server[s].error_page;
 	else
 		return server[s].location[l].error_page;
+}
+
+int							server_config::get_server_max_body_size(int s, int l) const
+{
+	if (l == -1)
+		return server[s].client_max_body_size;
+	else
+		return server[s].location[l].client_max_body_size;
 }
 
 void						server_s::complete_locations(void)

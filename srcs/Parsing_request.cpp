@@ -52,6 +52,30 @@ std::string		client_request::process_request(server_config const data)
 		return process_error(data); 
 	}
 
+//.......Check if content body size is too long
+		
+	std::map<std::string, std::string>::iterator	ite = this->header_fields.begin();
+	std::map<std::string, std::string>::iterator	last = this->header_fields.end();
+	int												body_size(-1);
+
+	for ( ; ite != last ; ++ite)
+	{
+		if (ite->first == "Content-Length")
+			body_size = atoi(ite->second.c_str());
+	}
+
+	if (this->method == "POST" && body_size == -1)	
+	{
+		this->error = "411";
+		return this->process_error(data);
+	}
+
+	if (body_size > data.get_server_max_body_size(this->server_pos, this->location_pos))
+	{
+		this->error = "413";
+		return this->process_error(data);
+	}
+
 //..........Select fuction to use
 
 	if (this->method == "GET")
@@ -123,6 +147,8 @@ std::string	client_request::process_get(server_config const config)
 		file_path += this->request_target.substr(config.server[this->server_pos].location[this->location_pos].path.size());
 	else
 		file_path += this->request_target;
+
+	std::cout << "PATH: " << file_path << std::endl;
 
 	if (path_is_dir(file_path))
 	{
@@ -213,7 +239,7 @@ std::string	client_request::process_get(server_config const config)
 			content_type = it->second;
 		// else if (extension == ".php")
 		// 	std::string response = manage_cgi(reponse_body);
-	}
+	}                               //need to add 415 error if extension not found
 
 	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n"; 
 	ret += "Date: " + date + "\r\n";
@@ -407,31 +433,29 @@ void		client_request::parse_request(std::string input)
 	std::string		tmp;
 	size_t			pos;
 	
-	if (this->reading_body())
-		this->body += input;
-	else
-	{
+	/* if (this->reading_body()) */
+	/* 	this->body += input; */
+	/* else */
+	/* { */
 		pos = input.find("\r\n");
 		line = input.substr(0, pos);
 		if (this->parse_line_request(line))
 			return ;
 		input.erase(0, pos + 2);
 
-		while ((pos = input.find("\r\n")) != std::string::npos && (pos+ 2) < input.size())
+		while ((pos = input.find("\r\n")) != std::string::npos && (pos + 2) < input.size() && pos != 0)
 		{
 			pos = input.find("\r\n"); line = input.substr(0, pos);	
 			if (this->parse_header_line(line))
 				return ;
 			input.erase(0, pos + 2);
-			//...........Postman para ver una post this->..........
-			/* if (input[0] == '\n') */
-			/* { */
-			/* 	input.erase(0, 1); */
-			/* 	this->body += input; */
-			/* 	this->set_rbody(true); */
-			/* } */
 		}
-	}
+		if (pos == 0)
+		{
+			input.erase(0, 2);
+			this->body = input;
+		}
+	/* } */
 }
 
 std::map<std::string, std::string>		client_request::initialize_file_types()
