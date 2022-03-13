@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/12 00:37:12 by daprovin         ###   ########.fr       */
+/*   Updated: 2022/03/13 17:32:48 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -118,6 +118,9 @@ public:
 		FD_ZERO(&current_sockets);
 		FD_ZERO(&ready_sockets);
 		int max_socket = -1;
+		struct timeval time = {2, 0};
+
+
 		for (iterator ite = servers.begin(); ite != servers.end(); ite++)
 		{
 			FD_SET((*ite).first, &current_sockets);
@@ -130,7 +133,7 @@ public:
 			ready_sockets = current_sockets;
 
 			std::cout << "Waiting for a connection..." << std::endl;
-			if (select(max_socket + 1, &ready_sockets, NULL, NULL, NULL) < 0)
+			if (select(max_socket + 1, &ready_sockets, NULL, NULL, &time) < 0)
 				err_n_die("Select failed!!");
 			for (int i = 0; i <= max_socket; i++)
 			{

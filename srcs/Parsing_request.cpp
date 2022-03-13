@@ -202,6 +202,7 @@ std::string	client_request::process_get(server_config const config)
 	std::map<std::string, std::string>::iterator	it;
 	std::string										content_type;
 
+	std::cout << "" << reponse_body << std::endl;
 	for (it = this->file_types.begin(); it != this->file_types.end(); ++it)
 	{
 		std::string		extension;
@@ -211,7 +212,7 @@ std::string	client_request::process_get(server_config const config)
 		if (it->first == extension)
 			content_type = it->second;
 		// else if (extension == ".php")
-			// std::string response = manege_cgi();
+		// 	std::string response = manage_cgi(reponse_body);
 	}
 
 	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n"; 
