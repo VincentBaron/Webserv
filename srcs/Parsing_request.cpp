@@ -240,7 +240,10 @@ std::string	client_request::process_get(server_config const config)
 			extension = file_path.substr(pos);
 		if (it->first == extension)
 			content_type = it->second;
-		// else if (extension == ".php")
+		else if (extension == ".php")
+		{
+			// this.port + this.method
+		}
 		// 	std::string response = manage_cgi(reponse_body);
 	}                               //need to add 415 error if extension not found
 
