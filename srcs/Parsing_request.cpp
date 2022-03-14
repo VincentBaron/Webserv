@@ -1,4 +1,5 @@
 #include "Parsing_request.hpp"
+#include "cgi.hpp"
 
 std::string		client_request::process_request(server_config const data)
 {
@@ -266,10 +267,7 @@ std::string	client_request::process_get(server_config const config)
 		if (it->first == extension)
 			content_type = it->second;
 		else if (extension == ".php")
-		{
-			// this.port + this.method
-		}
-		// 	std::string response = manage_cgi(reponse_body);
+			std::string response = process_cgi();
 	}                               //need to add 415 error if extension not found
 
 	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n"; 
@@ -284,6 +282,15 @@ std::string	client_request::process_get(server_config const config)
 	this->reponse_len = ret.size();
 
 	return ret;
+}
+
+std::string client_request::process_cgi(void)
+{
+	Cgi interface;
+
+	interface.get_path(this);
+	interface.init_vars();
+	interface.
 }
 
 std::string		client_request::process_delete(server_config const config)
