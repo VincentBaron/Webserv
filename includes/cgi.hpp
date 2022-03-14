@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/14 13:32:44 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/14 20:55:06 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/14 22:22:38 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,6 +18,8 @@
 #include "common.hpp"
 #include "Parsing_request.hpp"
 #define MAX_ARGS 2
+#define READ 0
+#define WRITE 1
 
 class Cgi
 {
@@ -65,15 +67,24 @@ public:
             err_n_die("Error creating name");
         if (path == NULL)
             err_n_die("Error creating path");
-        *_vars = path;
-        _vars++;
-        *_vars = name;
-        _vars++;
-        *_vars = NULL;
+        _vars[0] = path;
+        _vars[1] = name;
+        _vars[2] = NULL;
     };
 
-    void set_env(client_request request)
+    void set_vars(client_request request)
     {
+        if (request.method == "GET" && request.query_string != "")
+        {
+            _env["QUERY_STRING"] = request.query_string;
+            _body = request.query_string;
+        }
+        if (request.method == "POST")
+        {
+            _env["CONTENT_LENGTH"] = request.body.size();
+            _env["CONTENT_TYPE"] = request.header_fields.find("Content-Type")->second;
+            _body = request.body;
+        }
         _body = "";
         _env["AUTH_TYPE"] = "";
         _env["CONTENT_LENGTH"] = "0";
@@ -86,24 +97,92 @@ public:
         _env["SERVER_NAME"] = "webserv";
         _env["SERVER_PROTOCOL"] = "HTTP/1.1";
 
-        if (request.method == "GET" && request.query != "")
+        _envs = (char **)malloc(sizeof(char *) * (_env.size() + 1));
+        if (_envs == NULL)
+            err_n_die("Error malloc!");
+        
+        int i = 0;
+        for (std::map<std::string, std::string >::iterator ite = _env.begin(); ite != _env.end(); ite++)
         {
-            _env["QUERY_STRING"] = request.query;
-            _body = request.query;
+            _envs[i] = strdup((ite->first + "=" + ite->second).c_str());
+            if (_envs[i] == NULL)
+                err_n_die("Error envs vars");
+            i++;    
         }
-        if (method == "POST")
+        _envs[i] = NULL;
+    }
+
+    void execute_cgi()
+    {
+        int fds[2];
+        int status;
+        int pid;
+
+        if (pipe(fds) == -1)
+            err_n_die("Pipe error!");
+
+        if ((pid = fork()) == -1)
+            err_n_die("Fork error!");
+        if (pid == 0)
         {
-            _env["CONTENT_LENGTH"] = 
+            close(fds[READ]);
+            dup2(fds[WRITE], 1);
+
+            if (_body.length() > 0)
+            {
+                int mini_pipe[2];
+                if (pipe(mini_pipe) == -1)
+                    err_n_die("Pipe error!");
+                dup2(mini_pipe[READ], 0);
+                write(mini_pipe[WRITE], _body.c_str(), _body.size());
+                close(mini_pipe[WRITE]);
+            }
+
+            if (execve(_vars[0], _vars, _envs) == -1)
+                err_n_die("execve error!");
+            exit(0);
+        }
+        else
+        {
+            close(fds[WRITE]);
+            int ret = wait(&status);
+            char c;
+            while (read(fds[READ], &c, 1) > 0)
+                _response += c;
+        }
+    }
+
+    void remove_headers(std::map<std::string, std::string> &cgi_content)
+    {
+        std::string header("");
+        std::string key;
+        std::string value;
+
+        size_t pos2;
+        size_t pos = _response.find("\r\n\r\n");
+        if (pos != std::string::npos)
+        {
+            header = _response.substr(0, pos + 2);
+            _response = _response.substr(pos + 4, std::string::npos);
+        }
+        while ((pos = header.find("\r\n")) != std::string::npos && (pos2 = header.find(":")) != std::string::npos && pos2 < pos)
+        {
+            key = header.substr(0, pos2);
+            value = header.substr(pos2 + 2, pos - pos2 -2);
+            cgi_content[key] = value;
+            header.erase(0, pos + 2);
         }
     }
 
 private:
     // Attributes
     std::string _path;
+    std::string _response;
     std::string _pwd;
     std::string _body;
     std::map<std::string, std::string> _env;
     char **_vars;
+    char **_envs;
 };
 
 #endif
