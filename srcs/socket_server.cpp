@@ -46,6 +46,10 @@ client_request	test(std::string input)
 	{
 		std::cout << first->first << ": " << first->second << std::endl;
 	}
+	if (req.body.size() > 0)
+	{
+		std::cout << std::endl << req.body << std::endl;
+	}
 
 	return req;
 }
@@ -106,7 +110,7 @@ int main(int argc, char **argv)
 		std::string reponse = req.process_request(server_conf);
 		/* const char * reponse = req.process_request(server_conf); */
 		std::cout << ".............REPONSE.............." << std::endl << std::endl;
-        /* write(1 , reponse.c_str() , req.reponse_len); */
+        write(1 , reponse.c_str() , req.reponse_len);
         write(new_socket , reponse.c_str() , req.reponse_len);
         /* write(new_socket , hello , 17); */
         printf("------------------Hello message sent-------------------\n");

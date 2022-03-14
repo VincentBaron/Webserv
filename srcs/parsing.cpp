@@ -37,14 +37,16 @@ location_s		parse_location(std::ifstream & conf_file, std::string line)
 			std::cout << "Syntax error:" << line << std::endl;
 			_exit(1);
 		}
-		else if (line.compare(0, 12, "limit_except") == 0)			//parse allowed methods
+		else if (line.compare(0, 5, "allow") == 0)			//parse allowed methods
 			ret.allowed_methods = parse_methods(line);
 		else if (line.compare(0, 5, "index") == 0) 					//parse index
 			ret.index = parse_index(line);
 		else if (line.compare(0, 10, "error_page") == 0) 			//parse error_page
 			ret.error_page = parse_error_page(line);
-		else if (line.compare(0, 9, "autoindex") == 0)
+		else if (line.compare(0, 9, "autoindex") == 0)				//parse autoindex
 			ret.autoindex = parse_autoindex(line);
+		else if (line.compare(0, 6, "return") == 0)					//parse redirection
+			ret.redirection = parse_redirection(line);
 
 		std::getline(conf_file, line);
 	}
@@ -99,10 +101,12 @@ void	parse_server(std::ifstream & conf_file, server_config & data)
 			tmp.client_max_body_size = parse_body_size(line);
 		else if (line.compare(0, 5, "index") == 0)					//parse_index
 			tmp.index = parse_index(line);
-		else if (line.compare(0, 12, "limit_except") == 0)			//parse allowed methods
+		else if (line.compare(0, 5, "allow") == 0)			//parse allowed methods
 			tmp.allowed_methods = parse_methods(line);
-		else if (line.compare(0, 9, "autoindex") == 0)
+		else if (line.compare(0, 9, "autoindex") == 0)				//parse autoindex
 			tmp.autoindex = parse_autoindex(line);
+		else if (line.compare(0, 6, "return") == 0)					//parse redirection
+			tmp.redirection = parse_redirection(line);
 		else if (line.compare(0, 8, "location") == 0)				//parse location
 			tmp.location.push_back(parse_location(conf_file, line));
 
@@ -119,14 +123,33 @@ void	parsing(int ac, char **av, server_config & data)
 	std::ifstream	conf_file;
 	std::string		line;
 	size_t			pos;
+	std::string		name;
 
-	if (ac == 1)
+	if (ac > 2)
 	{
-		std::cout << "Need configuration file" << std::endl;
+		std::cout << "Too many arguments: Use --help flag." << std::endl;
 		_exit(1);
 	}
+	else if (ac == 1)	
+	{
+		char		*pwd = getcwd(NULL, 0);
+		if (pwd)
+		{
+			name = pwd;
+			name += "/conf/default.conf";
+			free(pwd);
+		}
+	}
+	else
+		name = av[1];
 
-	conf_file.open(av[1]);
+	if (name == "--help")
+	{
+		std::cout << "usage: ./webserv [config_file]" << std::endl;
+		_exit(0);
+	}
+
+	conf_file.open(name.c_str());
 	if (conf_file.is_open())
 	{
 		while (conf_file)
@@ -193,10 +216,29 @@ const std::string			server_config::get_server_name(int s) const
 
 const std::pair<std::string, std::string>	server_config::get_error_page(int s, int l) const
 {
+	if (s == -1)
+		return std::pair<std::string, std::string>();
+
 	if (l == -1)
 		return server[s].error_page;
 	else
 		return server[s].location[l].error_page;
+}
+
+const std::pair<std::string, std::string>	server_config::get_redirection(int s, int l) const
+{
+	if (l == -1)
+		return server[s].redirection;
+	else
+		return server[s].location[l].redirection;
+}
+
+int							server_config::get_server_max_body_size(int s, int l) const
+{
+	if (l == -1)
+		return server[s].client_max_body_size;
+	else
+		return server[s].location[l].client_max_body_size;
 }
 
 void						server_s::complete_locations(void)

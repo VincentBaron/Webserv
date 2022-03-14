@@ -24,6 +24,7 @@ class client_request
 		std::map<std::string, std::string>		header_fields; //important: host
 		std::string			body;
 		std::string			error;
+		std::string			query_string;
 
 		//Variable used for the response
 		
@@ -55,6 +56,8 @@ class client_request
 		std::string		process_delete(server_config const server);
 		std::string		process_error(server_config const server);
 		std::string		process_cgi(void);
+
+		std::string		process_redirection(std::pair<std::string, std::string> const redirection);
 
 	private:
 		bool						_r_body;

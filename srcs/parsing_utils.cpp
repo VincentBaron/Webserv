@@ -149,6 +149,34 @@ std::pair<std::string, std::string>		parse_error_page(std::string line)
 	return ret;
 }
 
+std::pair<std::string, std::string>		parse_redirection(std::string line)
+{
+	std::pair<std::string, std::string>		ret;
+	size_t									pos;
+	std::string								delim = " ";
+	
+	line.erase(0, 6);									//remove "listen" ";" and first spaces and tabs
+	pos = line.find_first_not_of(" \t");
+	line.erase(0, pos);
+	pos = line.find(';');
+
+	if (pos == std::string::npos)              //error if there is not ";"
+	{
+		std::cout << "Syntax error:" << line << std::endl;
+		_exit(1);
+	}
+
+	line.erase(pos);
+
+	pos = line.find(delim);
+	ret.first = line.substr(0, pos);
+	line.erase(0, pos + 1);
+	pos = line.find(delim);
+	ret.second = line.substr(0, pos);
+	
+	return ret;
+}
+
 int			parse_body_size(std::string	line)
 {
 	int				ret;
@@ -185,7 +213,7 @@ std::vector<std::string>	parse_methods(std::string line)
 	std::vector<std::string>	ret;
 	std::string					tmp;
 
-	line.erase(0, 12);			
+	line.erase(0, 5);			
 	pos = line.find_first_not_of(" \t");
 	line.erase(0, pos);
 	pos = line.find(';');
