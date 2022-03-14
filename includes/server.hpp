@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/14 11:17:17 by daprovin         ###   ########.fr       */
+/*   Updated: 2022/03/14 16:39:57 by daprovin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,7 +18,7 @@
 #define TRUE 1
 #define FALSE 0
 #define PORT 8888
-#define MAX_LINE 1000
+#define MAX_LINE 1000000
 #define SA_IN struct sockaddr_in
 #define SA struct sockaddr
 

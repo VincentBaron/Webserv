@@ -216,6 +216,9 @@ const std::string			server_config::get_server_name(int s) const
 
 const std::pair<std::string, std::string>	server_config::get_error_page(int s, int l) const
 {
+	if (s == -1)
+		return std::pair<std::string, std::string>();
+
 	if (l == -1)
 		return server[s].error_page;
 	else

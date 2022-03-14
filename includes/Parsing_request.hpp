@@ -24,6 +24,7 @@ class client_request
 		std::map<std::string, std::string>		header_fields; //important: host
 		std::string			body;
 		std::string			error;
+		std::string			query_string;
 
 		//Variable used for the response
 		
