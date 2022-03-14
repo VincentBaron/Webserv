@@ -2,6 +2,12 @@
 
 std::string		client_request::process_request(server_config const data)
 {
+	
+	if (this->error != "200")
+	{
+		this->http_version = "HTTP/1.1";
+		process_error(data);
+	}
 
 //......Serching a server matching the port
 
@@ -136,6 +142,7 @@ std::string	client_request::process_get(server_config const config)
 	std::ifstream	req_file;	
 	std::string		reponse_body;
 	std::string		file_path = config.get_root(this->server_pos, this->location_pos); 
+	std::string		tmp;
 	bool			autoindex_flag = false;
 
 //.........Some errors can happen before this function
@@ -157,7 +164,21 @@ std::string	client_request::process_get(server_config const config)
 	{
 		if (file_path[file_path.size() - 1] != '/')
 			file_path += "/";
-		if (config.if_autoindex_on(this->server_pos, this->location_pos))
+
+		if (!config.get_index(this->server_pos, this->location_pos).empty())
+		{
+			tmp = file_path + config.get_index(this->server_pos, this->location_pos);
+			if (path_is_file(tmp))
+				file_path = tmp;
+			else
+				tmp.clear();
+			/* if (path_is_dir(tmp)) */
+			/* 	tmp.clear(); */
+			/* else if (!path_is_file(tmp)) */
+			/* 	tmp.clear(); */
+		}
+
+		if (config.if_autoindex_on(this->server_pos, this->location_pos) && (config.get_index(this->server_pos, this->location_pos).empty() || tmp.empty()))
 		{
 			autoindex_flag = true;
 			DIR *dir;
@@ -187,13 +208,13 @@ std::string	client_request::process_get(server_config const config)
 				return process_error(config);
 			}
 		}
-		else
+		else if (config.get_index(this->server_pos, this->location_pos).empty() || tmp.empty())
 		{
-			file_path += config.get_index(this->server_pos, this->location_pos);
-			if (path_is_dir(file_path))
-				file_path.clear();
-			else if (!path_is_file(file_path))
-				file_path.clear();
+			/* file_path += config.get_index(this->server_pos, this->location_pos); */
+			/* if (path_is_dir(file_path)) */
+			/* 	file_path.clear(); */
+			/* else if (!path_is_file(file_path)) */
+			file_path.clear();
 		}
 	}
 	else if (!path_is_file(file_path))
