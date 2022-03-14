@@ -18,6 +18,7 @@ class location_s // must construct with the values from the server
 		std::string							autoindex;
 		std::vector<std::string>			allowed_methods;
 		std::pair<std::string, std::string>	error_page;
+		std::pair<std::string, std::string>	redirection;
 		int									client_max_body_size;
 	
 	public:
@@ -43,6 +44,7 @@ class server_s
 		std::vector<int>						port;
 		std::vector<location_s>					location;
 		std::vector<std::string>				allowed_methods;
+		std::pair<std::string, std::string>		redirection;
 		int										client_max_body_size;
 
 	public:
@@ -74,6 +76,7 @@ class server_config
 		const std::string					get_server_name(int s) const;
 		int									get_server_max_body_size(int s, int l) const;
 		const std::pair<std::string, std::string>		get_error_page(int s, int l) const;
+		const std::pair<std::string, std::string>		get_redirection(int s, int l) const;
 };
 
 void									parsing(int ac, char **av, server_config & data);
@@ -85,5 +88,6 @@ int										parse_body_size(std::string	line);
 std::vector<std::string>				parse_methods(std::string line);
 std::string								parse_index(std::string	line);
 std::string								parse_autoindex(std::string line);
+std::pair<std::string, std::string>		parse_redirection(std::string line);
 
 #endif

@@ -143,12 +143,15 @@ std::string	client_request::process_get(server_config const config)
 	if (this->error != "200")
 		return process_error(config);
 
+//.........Check if there is a redirection
+
+	if (!config.get_redirection(this->server_pos, this->location_pos).first.empty())
+		return process_redirection(config.get_redirection(this->server_pos, this->location_pos));
+
 	if (this->location_pos != -1)
 		file_path += this->request_target.substr(config.server[this->server_pos].location[this->location_pos].path.size());
 	else
-		file_path += this->request_target;
-
-	std::cout << "PATH: " << file_path << std::endl;
+		file_path += this->request_target; //remove the ? part in the request when query string is present(la cosa del cgi-get)
 
 	if (path_is_dir(file_path))
 	{
@@ -295,6 +298,20 @@ std::string		client_request::process_delete(server_config const config)
 	ret += reponse_body;
 
 	this->reponse_len = ret.size();
+
+	return ret;
+}
+
+std::string		client_request::process_redirection(std::pair<std::string, std::string> const redirection)
+{
+	std::string		ret;
+	std::string		date = ft_gettime();
+
+	ret = this->http_version + " " + redirection.first + " " + this->error_reponse.find(redirection.first)->second + "\r\n";
+	ret += "Location: " + redirection.second + "\r\n";
+	ret += "Date: " + date + "\r\n";
+	ret += "Server: Webserv\r\n";
+	ret += "Conection: Closed\r\n";
 
 	return ret;
 }

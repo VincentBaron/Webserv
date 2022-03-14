@@ -55,6 +55,8 @@ class client_request
 		std::string		process_delete(server_config const server);
 		std::string		process_error(server_config const server);
 
+		std::string		process_redirection(std::pair<std::string, std::string> const redirection);
+
 	private:
 		bool						_r_body;
 		std::map<std::string, std::string>	file_types;
