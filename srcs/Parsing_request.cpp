@@ -1,9 +1,19 @@
 #include "Parsing_request.hpp"
+#include "cgi.hpp"
 
 std::string		client_request::process_request(server_config const data)
 {
+	
+	if (this->error != "200")
+	{
+		this->http_version = "HTTP/1.1";
+		process_error(data);
+	}
 
 //......Serching a server matching the port
+
+	std::string		host = this->header_fields.find("Host")->second;
+	host = host.substr(0, host.find(':'));
 
 	for (size_t i = 0; i < data.server.size(); i++)
 	{
@@ -52,12 +62,36 @@ std::string		client_request::process_request(server_config const data)
 		return process_error(data); 
 	}
 
+//.......Check if content body size is too long
+		
+	std::map<std::string, std::string>::iterator	ite = this->header_fields.begin();
+	std::map<std::string, std::string>::iterator	last = this->header_fields.end();
+	int												body_size(-1);
+
+	for ( ; ite != last ; ++ite)
+	{
+		if (ite->first == "Content-Length")
+			body_size = atoi(ite->second.c_str());
+	}
+
+	if (this->method == "POST" && body_size == -1)	
+	{
+		this->error = "411";
+		return this->process_error(data);
+	}
+
+	if (body_size > data.get_server_max_body_size(this->server_pos, this->location_pos))
+	{
+		this->error = "413";
+		return this->process_error(data);
+	}
+
 //..........Select fuction to use
 
 	if (this->method == "GET")
 		return	this->process_get(data);
-	/* else if (this->method == "POST") */
-	/* 	return	this->process_post(data); */
+	else if (this->method == "POST")
+		return	this->process_post(data);
 	else if (this->method == "DELETE")
 		return	this->process_delete(data);
 
@@ -112,12 +146,20 @@ std::string	client_request::process_get(server_config const config)
 	std::ifstream	req_file;	
 	std::string		reponse_body;
 	std::string		file_path = config.get_root(this->server_pos, this->location_pos); 
+	std::string		tmp;
 	bool			autoindex_flag = false;
 
 //.........Some errors can happen before this function
 
 	if (this->error != "200")
 		return process_error(config);
+
+//.........Check if there is a redirection
+
+	if (!config.get_redirection(this->server_pos, this->location_pos).first.empty())
+		return process_redirection(config.get_redirection(this->server_pos, this->location_pos));
+
+//..
 
 	if (this->location_pos != -1)
 		file_path += this->request_target.substr(config.server[this->server_pos].location[this->location_pos].path.size());
@@ -128,7 +170,21 @@ std::string	client_request::process_get(server_config const config)
 	{
 		if (file_path[file_path.size() - 1] != '/')
 			file_path += "/";
-		if (config.if_autoindex_on(this->server_pos, this->location_pos))
+
+		if (!config.get_index(this->server_pos, this->location_pos).empty())
+		{
+			tmp = file_path + config.get_index(this->server_pos, this->location_pos);
+			if (path_is_file(tmp))
+				file_path = tmp;
+			else
+				tmp.clear();
+			/* if (path_is_dir(tmp)) */
+			/* 	tmp.clear(); */
+			/* else if (!path_is_file(tmp)) */
+			/* 	tmp.clear(); */
+		}
+
+		if (config.if_autoindex_on(this->server_pos, this->location_pos) && (config.get_index(this->server_pos, this->location_pos).empty() || tmp.empty()))
 		{
 			autoindex_flag = true;
 			DIR *dir;
@@ -158,13 +214,13 @@ std::string	client_request::process_get(server_config const config)
 				return process_error(config);
 			}
 		}
-		else
+		else if (config.get_index(this->server_pos, this->location_pos).empty() || tmp.empty())
 		{
-			file_path += config.get_index(this->server_pos, this->location_pos);
-			if (path_is_dir(file_path))
-				file_path.clear();
-			else if (!path_is_file(file_path))
-				file_path.clear();
+			/* file_path += config.get_index(this->server_pos, this->location_pos); */
+			/* if (path_is_dir(file_path)) */
+			/* 	file_path.clear(); */
+			/* else if (!path_is_file(file_path)) */
+			file_path.clear();
 		}
 	}
 	else if (!path_is_file(file_path))
@@ -202,7 +258,6 @@ std::string	client_request::process_get(server_config const config)
 	std::map<std::string, std::string>::iterator	it;
 	std::string										content_type;
 
-	std::cout << "" << reponse_body << std::endl;
 	for (it = this->file_types.begin(); it != this->file_types.end(); ++it)
 	{
 		std::string		extension;
@@ -211,9 +266,9 @@ std::string	client_request::process_get(server_config const config)
 			extension = file_path.substr(pos);
 		if (it->first == extension)
 			content_type = it->second;
-		// else if (extension == ".php")
-		// 	std::string response = manage_cgi(reponse_body);
-	}
+		else if (extension == ".php")
+			std::string response = process_cgi();
+	}                               //need to add 415 error if extension not found
 
 	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n"; 
 	ret += "Date: " + date + "\r\n";
@@ -227,6 +282,11 @@ std::string	client_request::process_get(server_config const config)
 	this->reponse_len = ret.size();
 
 	return ret;
+}
+
+std::string client_request::process_cgi(void)
+{
+	Cgi interface;
 }
 
 std::string		client_request::process_delete(server_config const config)
@@ -271,6 +331,122 @@ std::string		client_request::process_delete(server_config const config)
 	this->reponse_len = ret.size();
 
 	return ret;
+}
+
+std::string		client_request::process_redirection(std::pair<std::string, std::string> const redirection)
+{
+	std::string		ret;
+	std::string		date = ft_gettime();
+
+	ret = this->http_version + " " + redirection.first + " " + this->error_reponse.find(redirection.first)->second + "\r\n";
+	ret += "Location: " + redirection.second + "\r\n";
+	ret += "Date: " + date + "\r\n";
+	ret += "Server: Webserv\r\n";
+	ret += "Conection: Closed\r\n";
+
+	return ret;
+}
+
+std::string		client_request::process_post(server_config const config)
+{
+	std::string		ret;
+	std::string		content_type;
+	std::string		boundary;
+	size_t			pos;
+
+//....Parsing body and content type
+
+	std::string		tmp = this->header_fields.find("Content-Type")->second;
+
+	if (tmp.find("multipart/form-data") != std::string::npos)
+	{
+		pos = this->body.find("\r\n");
+		boundary = this->body.substr(0, pos);
+
+		this->body.erase(0, pos + 2);
+		pos = this->body.find("\r\n");
+		this->body.erase(0, pos + 2);
+		pos = this->body.find(':');
+		this->body.erase(0, pos + 2);
+		pos = this->body.find("\r\n");
+		content_type = this->body.substr(0, pos);
+		this->body.erase(0, pos + 2);
+		this->body.erase(0, 2);
+		pos = this->body.find(boundary);
+		this->body.erase(pos);
+		this->body.erase(this->body.size() - 2);
+
+		std::cout << "BOUNDARY:" << boundary << std::endl;
+		std::cout << "TYPE:" << content_type << std::endl;
+		std::cout << "THE BODY:" << std::endl << this->body << std::endl;
+
+		std::map<std::string, std::string>::iterator	i = this->header_fields.find("Content-Type");
+		i->second = content_type;
+	}
+	else
+	{
+		content_type = tmp;
+	}
+
+//...Check content type
+
+	std::map<std::string, std::string>::iterator	ite;
+
+	for (ite = this->file_types.begin(); ite != this->file_types.end() ; ++ite)
+	{
+		if (ite->second == content_type)
+			break ;
+	}
+
+	if (ite == this->file_types.end())
+	{
+		this->error = "415";
+		return this->process_error(config);
+	}
+	std::string extension = ite->first;
+
+//....Date
+
+	std::string		date = ft_gettime();
+
+//...get new file path and name
+
+	std::string		file_path = config.get_root(this->server_pos, this->location_pos); 
+
+	if (this->location_pos != -1)
+		file_path += this->request_target.substr(config.server[this->server_pos].location[this->location_pos].path.size());
+	else
+		file_path += this->request_target;
+	file_path += extension;
+
+//...create file
+
+	std::ofstream	c_file(file_path.c_str());
+	if (c_file)
+		c_file << this->body;
+	else
+	{
+		this->error = "400";
+		return this->process_error(config);
+	}
+
+//....Response body length
+
+	std::stringstream	content_length;
+	std::string			response_body = "<h1>POST request done.<h1>";
+	content_length << response_body.length();
+
+	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n";
+	ret += "Date: " + date + "\r\n";
+	ret += "Server: Webserv\r\n";
+	ret += "Content-Length: " + std::string(content_length.str()) + "\r\n";
+	ret += "Content-Type: " + ite->second + "\r\n";
+	ret += "\r\n";
+	ret += response_body;
+
+	this->reponse_len = ret.size();
+
+	return ret;	
 }
 
 std::string		client_request::process_error(server_config const config)
@@ -371,6 +547,17 @@ int			client_request::parse_line_request(std::string line)
 
 	this->http_version = line; //store [http-version]
 
+//.........Check if there is query string and split it from request_target
+
+	tmp = this->request_target;
+	pos = tmp.find('?');
+	if (pos != std::string::npos)
+	{
+		this->request_target = tmp.substr(0, pos);
+		tmp.erase(0, pos + 1);
+		this->query_string = tmp;
+	}
+
 	return 0;
 }
 
@@ -407,31 +594,29 @@ void		client_request::parse_request(std::string input)
 	std::string		tmp;
 	size_t			pos;
 	
-	if (this->reading_body())
-		this->body += input;
-	else
-	{
+	/* if (this->reading_body()) */
+	/* 	this->body += input; */
+	/* else */
+	/* { */
 		pos = input.find("\r\n");
 		line = input.substr(0, pos);
 		if (this->parse_line_request(line))
 			return ;
 		input.erase(0, pos + 2);
 
-		while ((pos = input.find("\r\n")) != std::string::npos && (pos+ 2) < input.size())
+		while ((pos = input.find("\r\n")) != std::string::npos && (pos + 2) < input.size() && pos != 0)
 		{
 			pos = input.find("\r\n"); line = input.substr(0, pos);	
 			if (this->parse_header_line(line))
 				return ;
 			input.erase(0, pos + 2);
-			//...........Postman para ver una post this->..........
-			/* if (input[0] == '\n') */
-			/* { */
-			/* 	input.erase(0, 1); */
-			/* 	this->body += input; */
-			/* 	this->set_rbody(true); */
-			/* } */
 		}
-	}
+		if (pos == 0)
+		{
+			input.erase(0, 2);
+			this->body = input;
+		}
+	/* } */
 }
 
 std::map<std::string, std::string>		client_request::initialize_file_types()

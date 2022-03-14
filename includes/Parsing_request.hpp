@@ -54,6 +54,7 @@ class client_request
 		std::string		process_post(server_config const server);
 		std::string		process_delete(server_config const server);
 		std::string		process_error(server_config const server);
+		std::string		process_cgi(void);
 
 	private:
 		bool						_r_body;
