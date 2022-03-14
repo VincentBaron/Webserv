@@ -353,27 +353,37 @@ std::string		client_request::process_post(server_config const config)
 
 //....Parsing body and content type
 
-	std::string		response_body = this->body;
+	std::string		tmp = this->header_fields.find("Content-Type")->second;
 
-	pos = response_body.find("\r\n");
-	boundary = response_body.substr(0, pos);
+	if (tmp.find("multipart/form-data") != std::string::npos)
+	{
+		pos = this->body.find("\r\n");
+		boundary = this->body.substr(0, pos);
 
-	response_body.erase(0, pos + 2);
-	pos = response_body.find("\r\n");
-	response_body.erase(0, pos + 2);
-	pos = response_body.find(':');
-	response_body.erase(0, pos + 2);
-	pos = response_body.find("\r\n");
-	content_type = response_body.substr(0, pos);
-	response_body.erase(0, pos + 2);
-	response_body.erase(0, 2);
-	pos = response_body.find(boundary);
-	response_body.erase(pos);
-	response_body.erase(response_body.size() - 2);
+		this->body.erase(0, pos + 2);
+		pos = this->body.find("\r\n");
+		this->body.erase(0, pos + 2);
+		pos = this->body.find(':');
+		this->body.erase(0, pos + 2);
+		pos = this->body.find("\r\n");
+		content_type = this->body.substr(0, pos);
+		this->body.erase(0, pos + 2);
+		this->body.erase(0, 2);
+		pos = this->body.find(boundary);
+		this->body.erase(pos);
+		this->body.erase(this->body.size() - 2);
 
-	std::cout << "BOUNDARY:" << boundary << std::endl;
-	std::cout << "TYPE:" << content_type << std::endl;
-	std::cout << "THE BODY:" << std::endl << response_body << std::endl;
+		std::cout << "BOUNDARY:" << boundary << std::endl;
+		std::cout << "TYPE:" << content_type << std::endl;
+		std::cout << "THE BODY:" << std::endl << this->body << std::endl;
+
+		std::map<std::string, std::string>::iterator	i = this->header_fields.find("Content-Type");
+		i->second = content_type;
+	}
+	else
+	{
+		content_type = tmp;
+	}
 
 //...Check content type
 
@@ -410,7 +420,7 @@ std::string		client_request::process_post(server_config const config)
 
 	std::ofstream	c_file(file_path.c_str());
 	if (c_file)
-		c_file << response_body;
+		c_file << this->body;
 	else
 	{
 		this->error = "400";
@@ -420,7 +430,7 @@ std::string		client_request::process_post(server_config const config)
 //....Response body length
 
 	std::stringstream	content_length;
-	response_body = "<h1>POST request done.<h1>";
+	std::string			response_body = "<h1>POST request done.<h1>";
 	content_length << response_body.length();
 
 	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n";
