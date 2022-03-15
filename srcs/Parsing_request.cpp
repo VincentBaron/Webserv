@@ -148,6 +148,7 @@ std::string	client_request::process_get(server_config const config)
 	std::string		file_path = config.get_root(this->server_pos, this->location_pos); 
 	std::string		tmp;
 	bool			autoindex_flag = false;
+	bool			dir_flag = false;
 
 //.........Some errors can happen before this function
 
@@ -187,6 +188,7 @@ std::string	client_request::process_get(server_config const config)
 		if (config.if_autoindex_on(this->server_pos, this->location_pos) && (config.get_index(this->server_pos, this->location_pos).empty() || tmp.empty()))
 		{
 			autoindex_flag = true;
+			dir_flag = true;
 			DIR *dir;
 			struct dirent *ent;
 			if ((dir = opendir(file_path.c_str())) != NULL)
@@ -216,6 +218,7 @@ std::string	client_request::process_get(server_config const config)
 		}
 		else if (config.get_index(this->server_pos, this->location_pos).empty() || tmp.empty())
 		{
+			dir_flag = true;
 			/* file_path += config.get_index(this->server_pos, this->location_pos); */
 			/* if (path_is_dir(file_path)) */
 			/* 	file_path.clear(); */
@@ -257,18 +260,32 @@ std::string	client_request::process_get(server_config const config)
 	
 	std::map<std::string, std::string>::iterator	it;
 	std::string										content_type;
-
-	for (it = this->file_types.begin(); it != this->file_types.end(); ++it)
+	if (dir_flag == true)
+		content_type = "text/html";
+	else
 	{
-		std::string		extension;
-		size_t	pos = file_path.find_last_of(".");
-		if (pos != std::string::npos)
-			extension = file_path.substr(pos);
-		if (it->first == extension)
-			content_type = it->second;
-		else if (extension == ".php")
-			std::string response = process_cgi();
-	}                               //need to add 415 error if extension not found
+		for (it = this->file_types.begin(); it != this->file_types.end(); ++it)
+		{
+			std::string		extension;
+			size_t	pos = file_path.find_last_of(".");
+			if (pos != std::string::npos)
+				extension = file_path.substr(pos);
+			if (it->first == extension)
+			{
+				content_type = it->second;
+				break ;
+			}
+			else if (extension == ".php")
+				reponse_body = process_cgi();
+			// else if (extension == ".php")
+			// 	std::string response = manage_cgi(reponse_body);
+		}                               //need to add 415 error if extension not found
+		if (it == this->file_types.end())
+		{
+			this->error = "415";
+			return this->process_error(config);
+		}
+	}
 
 	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n"; 
 	ret += "Date: " + date + "\r\n";
@@ -653,6 +670,7 @@ std::map<std::string, std::string>		client_request::initialize_file_types()
 	ret[".mid"]      = "audio/midi";
 	ret[".midi"]     = "audio/midi";
 	ret[".mpeg"]     = "video/mpeg";
+	ret[".mp4"]      = "video/mp4";
 	ret[".mpkg"]     = "application/vnd.apple.installer+xml";
 	ret[".odp"]      = "application/vnd.oasis.opendocument.presentation";
 	ret[".ods"]      = "application/vnd.oasis.opendocument.spreadsheet";
