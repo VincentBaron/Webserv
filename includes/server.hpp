@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/15 18:35:57 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/15 21:42:44 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,6 +27,8 @@ class Socket
 
 public:
 	typedef std::pair<int, int> intPair;
+	typedef std::pair<int, std::string> intStrPair;
+	typedef std::vector<intStrPair>::iterator intStrIte;
 	typedef std::vector<intPair>::iterator iterator;
 	typedef std::vector<server_s>::iterator confIte;
 	// Constructors and destructor
@@ -89,7 +91,7 @@ public:
 		// close((*clientIte).first);
 	}
 
-	void handle_connection(iterator clientIte, server_config &conf, int max_sockets, fd_set *write_sockets)
+	void handle_connection(iterator clientIte, server_config &conf)
 	{
 		char reqBuffer[MAX_LINE + 1];
 		std::string buff;
@@ -101,28 +103,16 @@ public:
 		{
 			std::cout << "Error with recv!" << std::endl;
 			clearClient(clientIte);
-			return ;
+			return;
 		}
 		std::cout << "" << reqBuffer << std::endl;
 		clientReq.set_port((*clientIte).second);
 		clientReq.parse_request(reqBuffer);
 		response = clientReq.process_request(conf);
-		// Parse_request(char * buffer) => while loop (until max-length || strlen(reqBuffer))
-		// manage_request();
-		for (int i = 0; i <= max_sockets; i++)
-		{
-			if (FD_ISSET((*clientIte).first, write_sockets))
-			{
-				if ((send((*clientIte).first, response.c_str(), response.size(), 0)) == -1)
-				{
-					std::cout << "Error with send!" << std::endl;
-					clearClient(clientIte);
-					return ;
-				}
-				clearClient(clientIte);
-				close((*clientIte).first);
-			}
-		}
+		FD_SET((*clientIte).first, &master_write_socks);
+		FD_CLR((*clientIte).first, &master_read_socks);
+		clientsResps.push_back(std::make_pair((*clientIte).first, response));
+		clients.erase(clientIte);
 	}
 
 	iterator checkIsServer(int i)
@@ -137,9 +127,27 @@ public:
 		return ite;
 	}
 
+	void handle_response(intStrIte clientIte)
+	{
+		std::cout << "fd: " << (*clientIte).first << std::endl;
+		std::cout << "response: " << (*clientIte).second << std::endl;
+		if ((send((*clientIte).first, (*clientIte).second.c_str(), (*clientIte).second.size(), 0)) == -1)
+		{
+			std::cout << "Error with send!" << std::endl;
+			FD_CLR((*clientIte).first, &master_write_socks);
+			clientsResps.erase(clientIte);
+			close((*clientIte).first);
+			return;
+		}
+		FD_CLR((*clientIte).first, &master_write_socks);
+		// FD_CLR((*clientIte).first, &master_read_socks);
+		clientsResps.erase(clientIte);
+		close((*clientIte).first);
+	}
+
 	void waitForConnections(server_config &conf)
 	{
-		
+
 		FD_ZERO(&master_read_socks);
 		FD_ZERO(&master_write_socks);
 		FD_ZERO(&read_sockets);
@@ -161,11 +169,23 @@ public:
 			read_sockets = master_read_socks;
 			write_sockets = master_write_socks;
 			std::cout << "Waiting for a connection..." << std::endl;
-			/* if (select(max_socket + 1, &read_sockets, NULL, NULL, &time) < 0) */
 			if (select(max_socket + 1, &read_sockets, &write_sockets, NULL, NULL) < 0)
 				err_n_die("Select failed!!");
 			for (int i = 0; i <= max_socket; i++)
 			{
+				if (FD_ISSET(i, &write_sockets))
+				{
+					intStrIte ite;
+					for (ite = clientsResps.begin(); ite != clientsResps.end(); ite++)
+					{
+						if ((*ite).first == i)
+						{
+							handle_response(ite);
+							break;
+						}
+					}
+				}
+
 				if (FD_ISSET(i, &read_sockets))
 				{
 					iterator serverIte = checkIsServer(i);
@@ -174,7 +194,6 @@ public:
 						int client_socket = accept_new_connection(i);
 						clients.push_back(std::make_pair(client_socket, (*serverIte).second));
 						FD_SET(client_socket, &master_read_socks);
-						FD_SET(client_socket, &master_write_socks);
 						if (client_socket > max_socket)
 							max_socket = client_socket;
 					}
@@ -184,9 +203,12 @@ public:
 						for (ite = clients.begin(); ite != clients.end(); ite++)
 						{
 							if ((*ite).first == i)
-								break;
+							{
+								handle_connection(ite, conf);
+								break ;
+							}
+								
 						}
-						handle_connection(ite, conf, max_socket, &write_sockets);
 					}
 				}
 			}
@@ -196,6 +218,7 @@ public:
 private:
 	std::vector<intPair> servers;
 	std::vector<intPair> clients;
+	std::vector<intStrPair> clientsResps;
 	server_config confFile;
 	int max_clients;
 	fd_set master_read_socks, read_sockets, master_write_socks, write_sockets;
