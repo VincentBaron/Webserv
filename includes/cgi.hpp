@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/14 13:32:44 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/14 22:22:38 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/15 11:53:17 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -26,40 +26,21 @@ class Cgi
 
 public:
     // Constructors and destructor
-    Cgi(void);
-    Cgi(const Cgi &src);
-    virtual ~Cgi();
+    Cgi(void){};
+    virtual ~Cgi() {};
 
     // Operator overloads
-    Cgi &operator=(const Cgi &rhs);
 
     // Getters / Setters
 
     // Member functions
-    void get_path(std::string content)
-    {
 
-        char *path = NULL;
-        _path = "/" + content;
-        std::string tmp = _path;
-        path = getcwd(NULL, 0);
-        _pwd = path;
-        if (path == NULL)
-            err_n_die("Error with cwd");
-        else
-        {
-            _path = _pwd;
-            if (_path.find("/www") != std::string::npos)
-                _path += tmp;
-            else
-                _path += "/www" + tmp;
-            free(path);
-        }
-    };
-
-    void init_vars()
+    void init_vars(std::string file_path)
     {
-        std::string cgi_path = "/usr/local/bin/php-cgi";
+        _path = file_path;
+        std::cout << "_path: " << _path << std::endl;
+        std::string pwd  = getcwd(NULL, 0);
+        std::string cgi_path = pwd + "/cgi_executable/php-cgi";
         _vars = (char **)malloc(sizeof(char *) * (MAX_ARGS + 1));
         char *name = strdup((char *)_path.c_str());
         char *path = strdup((char *)cgi_path.c_str());
@@ -146,13 +127,18 @@ public:
         {
             close(fds[WRITE]);
             int ret = wait(&status);
+            if (ret == -1)
+                err_n_die("wait error");
+            if (status == -1)
+                err_n_die("child process error");
             char c;
             while (read(fds[READ], &c, 1) > 0)
                 _response += c;
         }
+        // std::cout << "response: " << _response << std::endl;
     }
 
-    void remove_headers(std::map<std::string, std::string> &cgi_content)
+    void remove_headers(void)
     {
         std::string header("");
         std::string key;
@@ -169,10 +155,12 @@ public:
         {
             key = header.substr(0, pos2);
             value = header.substr(pos2 + 2, pos - pos2 -2);
-            cgi_content[key] = value;
+            _cgi_content[key] = value;
             header.erase(0, pos + 2);
         }
     }
+
+    std::string get_response(void) {return (_response);};
 
 private:
     // Attributes
@@ -181,6 +169,7 @@ private:
     std::string _pwd;
     std::string _body;
     std::map<std::string, std::string> _env;
+    std::map<std::string, std::string> _cgi_content;
     char **_vars;
     char **_envs;
 };
