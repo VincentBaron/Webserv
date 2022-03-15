@@ -255,13 +255,13 @@ std::string	client_request::process_get(server_config const config)
 	
 	std::map<std::string, std::string>::iterator	it;
 	std::string										content_type;
+	std::string		extension;
 	if (dir_flag == true)
 		content_type = "text/html";
 	else
 	{
 		for (it = this->file_types.begin(); it != this->file_types.end(); ++it)
 		{
-			std::string		extension;
 			size_t	pos = file_path.find_last_of(".");
 			if (pos != std::string::npos)
 				extension = file_path.substr(pos);
@@ -278,7 +278,7 @@ std::string	client_request::process_get(server_config const config)
 			// else if (extension == ".php")
 			// 	std::string response = manage_cgi(reponse_body);
 		}                               //need to add 415 error if extension not found
-		if (it == this->file_types.end())
+		if (it == this->file_types.end() && extension != ".php")
 		{
 			this->error = "415";
 			return this->process_error(config);
