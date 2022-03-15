@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/15 17:52:38 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/15 18:35:57 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,8 +120,7 @@ public:
 					return ;
 				}
 				clearClient(clientIte);
-				break ;
-				// close((*clientIte).first);
+				close((*clientIte).first);
 			}
 		}
 	}
@@ -161,7 +160,6 @@ public:
 			FD_ZERO(&write_sockets);
 			read_sockets = master_read_socks;
 			write_sockets = master_write_socks;
-
 			std::cout << "Waiting for a connection..." << std::endl;
 			/* if (select(max_socket + 1, &read_sockets, NULL, NULL, &time) < 0) */
 			if (select(max_socket + 1, &read_sockets, &write_sockets, NULL, NULL) < 0)
