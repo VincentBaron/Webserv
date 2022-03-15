@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/14 13:32:44 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/15 11:53:17 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/15 15:57:40 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -27,7 +27,7 @@ class Cgi
 public:
     // Constructors and destructor
     Cgi(void){};
-    virtual ~Cgi() {};
+    virtual ~Cgi(){};
 
     // Operator overloads
 
@@ -39,7 +39,7 @@ public:
     {
         _path = file_path;
         std::cout << "_path: " << _path << std::endl;
-        std::string pwd  = getcwd(NULL, 0);
+        std::string pwd = getcwd(NULL, 0);
         std::string cgi_path = pwd + "/cgi_executable/php-cgi";
         _vars = (char **)malloc(sizeof(char *) * (MAX_ARGS + 1));
         char *name = strdup((char *)_path.c_str());
@@ -55,17 +55,6 @@ public:
 
     void set_vars(client_request request)
     {
-        if (request.method == "GET" && request.query_string != "")
-        {
-            _env["QUERY_STRING"] = request.query_string;
-            _body = request.query_string;
-        }
-        if (request.method == "POST")
-        {
-            _env["CONTENT_LENGTH"] = request.body.size();
-            _env["CONTENT_TYPE"] = request.header_fields.find("Content-Type")->second;
-            _body = request.body;
-        }
         _body = "";
         _env["AUTH_TYPE"] = "";
         _env["CONTENT_LENGTH"] = "0";
@@ -78,17 +67,32 @@ public:
         _env["SERVER_NAME"] = "webserv";
         _env["SERVER_PROTOCOL"] = "HTTP/1.1";
 
+        if (request.method == "GET" && request.query_string != "")
+        {
+            _env["QUERY_STRING"] = request.query_string;
+            _body = request.query_string;
+        }
+        if (request.method == "POST")
+        {
+            std::stringstream content_len;
+            content_len << request.body.size();
+            _env["CONTENT_LENGTH"] = content_len.str();
+            std::cout << "_env[\"CONTENT_LENGTH\"] " << _env["CONTENT_LENGTH"] << std::endl;
+            _env["CONTENT_TYPE"] = request.header_fields.find("Content-Type")->second;
+            _body = request.body;
+        }
+
         _envs = (char **)malloc(sizeof(char *) * (_env.size() + 1));
         if (_envs == NULL)
             err_n_die("Error malloc!");
-        
+
         int i = 0;
-        for (std::map<std::string, std::string >::iterator ite = _env.begin(); ite != _env.end(); ite++)
+        for (std::map<std::string, std::string>::iterator ite = _env.begin(); ite != _env.end(); ite++)
         {
             _envs[i] = strdup((ite->first + "=" + ite->second).c_str());
             if (_envs[i] == NULL)
                 err_n_die("Error envs vars");
-            i++;    
+            i++;
         }
         _envs[i] = NULL;
     }
@@ -98,6 +102,11 @@ public:
         int fds[2];
         int status;
         int pid;
+
+        for (int i = 0; _vars[i]; i++)
+            std::cout << "vars[" << i << "]: " << _vars[i] << std::endl;
+        for (int i = 0; _envs[i]; i++)
+            std::cout << "envs[" << i << "]: " << _envs[i] << std::endl;
 
         if (pipe(fds) == -1)
             err_n_die("Pipe error!");
@@ -154,13 +163,13 @@ public:
         while ((pos = header.find("\r\n")) != std::string::npos && (pos2 = header.find(":")) != std::string::npos && pos2 < pos)
         {
             key = header.substr(0, pos2);
-            value = header.substr(pos2 + 2, pos - pos2 -2);
+            value = header.substr(pos2 + 2, pos - pos2 - 2);
             _cgi_content[key] = value;
             header.erase(0, pos + 2);
         }
     }
 
-    std::string get_response(void) {return (_response);};
+    std::string get_response(void) { return (_response); };
 
 private:
     // Attributes
