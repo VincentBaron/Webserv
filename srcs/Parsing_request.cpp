@@ -94,6 +94,11 @@ std::string		client_request::process_request(server_config const data)
 		return	this->process_post(data);
 	else if (this->method == "DELETE")
 		return	this->process_delete(data);
+	else
+	{
+		this->error = "405";
+		return this->process_error(data);
+	}
 
 	return NULL;
 }
@@ -571,7 +576,7 @@ int			client_request::parse_line_request(std::string line)
 	else
 	{
 		this->error = "405";
-		return 1;
+		/* return 1; */
 	}
 	line.erase(0, pos + 1);
 
