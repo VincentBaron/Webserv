@@ -248,11 +248,6 @@ std::string	client_request::process_get(server_config const config)
 	
 	std::string		date = ft_gettime();
 
-	//saving Content Length as an std::string
-
-	std::stringstream content_len;
-	content_len << reponse_body.size();
-
 	//searching for content type
 	
 	std::map<std::string, std::string>::iterator	it;
@@ -267,9 +262,19 @@ std::string	client_request::process_get(server_config const config)
 		if (it->first == extension)
 			content_type = it->second;
 		else if (extension == ".php")
-			std::string response = process_cgi();
+		{
+			reponse_body = process_cgi(file_path);
+			content_type = "text/html";
+			std::cout << "reponse_body:\n " << reponse_body << std::endl;
+		}
 	}                               //need to add 415 error if extension not found
 
+
+	//saving Content Length as an std::string
+
+	std::stringstream content_len;
+	content_len << reponse_body.size();
+	
 	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n"; 
 	ret += "Date: " + date + "\r\n";
 	ret += "Server: Webserv\r\n";
@@ -278,18 +283,18 @@ std::string	client_request::process_get(server_config const config)
 	ret += "Content-Type: " + content_type + "\r\n";
 	ret += "\r\n";
 	ret += reponse_body;
+	std::cout << "full response:\n " << ret << std::endl;
 
 	this->reponse_len = ret.size();
 
 	return ret;
 }
 
-std::string client_request::process_cgi(void)
+std::string client_request::process_cgi(std::string file_path)
 {
 	Cgi interface;
 
-	interface.get_path(request_target);
-	interface.init_vars();
+	interface.init_vars(file_path);
 	interface.set_vars(*this);
 	interface.execute_cgi();
 	interface.remove_headers();
