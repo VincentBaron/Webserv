@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/14 13:32:44 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/15 15:57:40 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/15 16:02:16 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -63,7 +63,9 @@ public:
         _env["REDIRECT_STATUS"] = "200";
         _env["REQUEST_METHOD"] = request.method;
         _env["SCRIPT_FILENAME"] = _vars[1];
-        _env["SCRIPT_PORT"] = request.port;
+        std::stringstream content_len;
+        content_len << request.body.size();
+        _env["SCRIPT_PORT"] = content_len.str();
         _env["SERVER_NAME"] = "webserv";
         _env["SERVER_PROTOCOL"] = "HTTP/1.1";
 
