@@ -55,6 +55,7 @@ class client_request
 		std::string		process_post(server_config const server);
 		std::string		process_delete(server_config const server);
 		std::string		process_error(server_config const server);
+		std::string		process_cgi(std::string file_path);
 
 		std::string		process_redirection(std::pair<std::string, std::string> const redirection);
 
