@@ -267,14 +267,7 @@ std::string	client_request::process_get(server_config const config)
 		if (it->first == extension)
 			content_type = it->second;
 		else if (extension == ".php")
-<<<<<<< HEAD
 			std::string response = process_cgi();
-=======
-		{
-			// this.port + this.method
-		}
-		// 	std::string response = manage_cgi(reponse_body);
->>>>>>> b56e101bf432b5fcf606899cac9bde5130cb730f
 	}                               //need to add 415 error if extension not found
 
 	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n"; 
@@ -294,6 +287,13 @@ std::string	client_request::process_get(server_config const config)
 std::string client_request::process_cgi(void)
 {
 	Cgi interface;
+
+	interface.get_path(request_target);
+	interface.init_vars();
+	interface.set_vars(*this);
+	interface.execute_cgi();
+	interface.remove_headers();
+	return (interface.get_response());
 }
 
 std::string		client_request::process_delete(server_config const config)
