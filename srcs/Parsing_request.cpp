@@ -361,6 +361,9 @@ std::string		client_request::process_post(server_config const config)
 	std::string		ret;
 	std::string		content_type;
 	std::string		boundary;
+	std::string		extension;
+	std::string		response_body;
+	bool			cgi_flag = false;
 	size_t			pos;
 
 //....Parsing body and content type
@@ -385,10 +388,6 @@ std::string		client_request::process_post(server_config const config)
 		this->body.erase(pos);
 		this->body.erase(this->body.size() - 2);
 
-		std::cout << "BOUNDARY:" << boundary << std::endl;
-		std::cout << "TYPE:" << content_type << std::endl;
-		std::cout << "THE BODY:" << std::endl << this->body << std::endl;
-
 		std::map<std::string, std::string>::iterator	i = this->header_fields.find("Content-Type");
 		i->second = content_type;
 	}
@@ -407,18 +406,21 @@ std::string		client_request::process_post(server_config const config)
 			break ;
 	}
 
-	if (ite == this->file_types.end())
+	if (ite != this->file_types.end())
+	{
+		extension = ite->first;
+	}
+	else if (content_type != "application/x-www-form-urlencoded")
 	{
 		this->error = "415";
 		return this->process_error(config);
 	}
-	std::string extension = ite->first;
 
 //....Date
 
 	std::string		date = ft_gettime();
 
-//...get new file path and name
+//...get new file path
 
 	std::string		file_path = config.get_root(this->server_pos, this->location_pos); 
 
@@ -428,28 +430,39 @@ std::string		client_request::process_post(server_config const config)
 		file_path += this->request_target;
 	file_path += extension;
 
-//...create file
-
-	std::ofstream	c_file(file_path.c_str());
-	if (c_file)
-		c_file << this->body;
+//...Aply cgi if needed, add extension if not
+	if (file_path.substr(file_path.find_last_of('.') + 1) == "php")
+	{
+		cgi_flag = true;
+		this->query_string = this->body;
+		/* response_body = cgi */
+	}
 	else
 	{
-		this->error = "400";
-		return this->process_error(config);
+		//...create file
+
+		std::ofstream	c_file(file_path.c_str());
+		if (c_file)
+			c_file << this->body;
+		else
+		{
+			this->error = "400";
+			return this->process_error(config);
+		}
 	}
 
 //....Response body length
 
 	std::stringstream	content_length;
-	std::string			response_body = "<h1>POST request done.<h1>";
+	if (cgi_flag == false)
+		response_body = "<h1>POST request done.<h1>";
 	content_length << response_body.length();
 
 	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n";
 	ret += "Date: " + date + "\r\n";
 	ret += "Server: Webserv\r\n";
 	ret += "Content-Length: " + std::string(content_length.str()) + "\r\n";
-	ret += "Content-Type: " + ite->second + "\r\n";
+	ret += "Content-Type: text/html; charset=utf-8\r\n";
 	ret += "\r\n";
 	ret += response_body;
 
