@@ -265,7 +265,6 @@ std::string	client_request::process_get(server_config const config)
 		{
 			reponse_body = process_cgi(file_path);
 			content_type = "text/html";
-			std::cout << "reponse_body:\n " << reponse_body << std::endl;
 		}
 	}                               //need to add 415 error if extension not found
 
@@ -274,7 +273,7 @@ std::string	client_request::process_get(server_config const config)
 
 	std::stringstream content_len;
 	content_len << reponse_body.size();
-	
+
 	ret = this->http_version + " " + this->error + " " + this->error_reponse.find(this->error)->second + "\r\n"; 
 	ret += "Date: " + date + "\r\n";
 	ret += "Server: Webserv\r\n";
