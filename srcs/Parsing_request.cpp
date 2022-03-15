@@ -452,6 +452,7 @@ std::string		client_request::process_post(server_config const config)
 		cgi_flag = true;
 		this->query_string = this->body;
 		/* response_body = cgi */
+		response_body = process_cgi(file_path);
 	}
 	else
 	{
@@ -484,6 +485,7 @@ std::string		client_request::process_post(server_config const config)
 
 	this->reponse_len = ret.size();
 
+	std::cout << "ret: \n" << ret << std::endl;
 	return ret;	
 }
 
