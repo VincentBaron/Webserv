@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/02 10:27:29 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/15 21:42:44 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/15 22:58:47 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include "common.hpp"
 #include "Parsing.hpp"
 #include "Parsing_request.hpp"
+#include <sys/wait.h>
 #define TRUE 1
 #define FALSE 0
 #define PORT 8888
@@ -65,7 +66,7 @@ public:
 			if ((bind(server_fd, (SA *)&servaddr, sizeof(servaddr))) < 0)
 				err_n_die("Can't bind!!!");
 
-			if ((listen(server_fd, 10)) < 0)
+			if ((listen(server_fd, FD_SETSIZE)) < 0)
 				err_n_die("Listen error!!!");
 			servers.push_back(std::make_pair(server_fd, ite->port[0]));
 		}
@@ -105,7 +106,6 @@ public:
 			clearClient(clientIte);
 			return;
 		}
-		std::cout << "" << reqBuffer << std::endl;
 		clientReq.set_port((*clientIte).second);
 		clientReq.parse_request(reqBuffer);
 		response = clientReq.process_request(conf);
@@ -129,15 +129,19 @@ public:
 
 	void handle_response(intStrIte clientIte)
 	{
-		std::cout << "fd: " << (*clientIte).first << std::endl;
-		std::cout << "response: " << (*clientIte).second << std::endl;
-		if ((send((*clientIte).first, (*clientIte).second.c_str(), (*clientIte).second.size(), 0)) == -1)
+		int ret = send((*clientIte).first, (*clientIte).second.c_str(), (*clientIte).second.size(), 0);
+		if (ret == -1)
 		{
 			std::cout << "Error with send!" << std::endl;
 			FD_CLR((*clientIte).first, &master_write_socks);
 			clientsResps.erase(clientIte);
 			close((*clientIte).first);
 			return;
+		}
+		if (ret == 0)
+		{
+			std::cout << "" << "YALAA" << std::endl;
+			return ;
 		}
 		FD_CLR((*clientIte).first, &master_write_socks);
 		// FD_CLR((*clientIte).first, &master_read_socks);

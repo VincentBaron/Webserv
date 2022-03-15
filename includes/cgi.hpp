@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/14 13:32:44 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/15 16:02:16 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/15 22:06:15 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -38,7 +38,7 @@ public:
     void init_vars(std::string file_path)
     {
         _path = file_path;
-        std::cout << "_path: " << _path << std::endl;
+        // std::cout << "_path: " << _path << std::endl;
         std::string pwd = getcwd(NULL, 0);
         std::string cgi_path = pwd + "/cgi_executable/php-cgi";
         _vars = (char **)malloc(sizeof(char *) * (MAX_ARGS + 1));
@@ -79,7 +79,7 @@ public:
             std::stringstream content_len;
             content_len << request.body.size();
             _env["CONTENT_LENGTH"] = content_len.str();
-            std::cout << "_env[\"CONTENT_LENGTH\"] " << _env["CONTENT_LENGTH"] << std::endl;
+            // std::cout << "_env[\"CONTENT_LENGTH\"] " << _env["CONTENT_LENGTH"] << std::endl;
             _env["CONTENT_TYPE"] = request.header_fields.find("Content-Type")->second;
             _body = request.body;
         }
@@ -105,10 +105,10 @@ public:
         int status;
         int pid;
 
-        for (int i = 0; _vars[i]; i++)
-            std::cout << "vars[" << i << "]: " << _vars[i] << std::endl;
-        for (int i = 0; _envs[i]; i++)
-            std::cout << "envs[" << i << "]: " << _envs[i] << std::endl;
+        // for (int i = 0; _vars[i]; i++)
+        //     std::cout << "vars[" << i << "]: " << _vars[i] << std::endl;
+        // for (int i = 0; _envs[i]; i++)
+        //     std::cout << "envs[" << i << "]: " << _envs[i] << std::endl;
 
         if (pipe(fds) == -1)
             err_n_die("Pipe error!");
