@@ -41,7 +41,8 @@ class client_request
 		void		set_rbody(bool v) { _r_body = v; }
 		void		set_port(int p) { port = p; }
 
-		void		parse_request(std::string input);
+		/* void		parse_request(std::string input); */
+		void		parse_request(char * input);
 		std::string	process_request(server_config const server);
 
 	private:

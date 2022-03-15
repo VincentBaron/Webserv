@@ -255,7 +255,7 @@ std::string	client_request::process_get(server_config const config)
 	
 	std::map<std::string, std::string>::iterator	it;
 	std::string										content_type;
-	std::string		extension;
+	std::string										extension;
 	if (dir_flag == true)
 		content_type = "text/html";
 	else
@@ -297,7 +297,6 @@ std::string	client_request::process_get(server_config const config)
 	ret += "Content-Type: " + content_type + "\r\n";
 	ret += "\r\n";
 	ret += reponse_body;
-	std::cout << "full response:\n " << ret << std::endl;
 
 	this->reponse_len = ret.size();
 
@@ -627,12 +626,15 @@ int			client_request::parse_header_line(std::string line)
 	return 0;
 }
 
-void		client_request::parse_request(std::string input)
+void		client_request::parse_request(char * buffer)
 {	
 	std::string		line;
-	std::string		tmp;
 	size_t			pos;
-	
+	int				body_pos(0);
+	std::string		input(buffer);
+	std::map<std::string, std::string>::iterator it;
+	int				con_len(0);
+
 	/* if (this->reading_body()) */
 	/* 	this->body += input; */
 	/* else */
@@ -642,18 +644,27 @@ void		client_request::parse_request(std::string input)
 		if (this->parse_line_request(line))
 			return ;
 		input.erase(0, pos + 2);
+		body_pos += (pos + 2);
 
 		while ((pos = input.find("\r\n")) != std::string::npos && (pos + 2) < input.size() && pos != 0)
 		{
-			pos = input.find("\r\n"); line = input.substr(0, pos);	
+			pos = input.find("\r\n");
+			line = input.substr(0, pos);	
 			if (this->parse_header_line(line))
 				return ;
 			input.erase(0, pos + 2);
+			body_pos += (pos + 2);
 		}
+		it = this->header_fields.find("Content-Length");
+		if (it != this->header_fields.end())
+			con_len = atoi(it->second.c_str());
 		if (pos == 0)
 		{
+			body_pos += (pos + 2);
+			std::string		buffered_string(buffer + body_pos, con_len);
 			input.erase(0, 2);
-			this->body = input;
+			/* this->body = input; */
+			this->body = buffered_string;
 		}
 	/* } */
 }

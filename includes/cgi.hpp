@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/14 13:32:44 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/15 11:53:17 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/15 15:30:51 by daprovin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,6 +14,7 @@
 #define CGI_HPP
 #include <string>
 #include <unistd.h>
+#include <sys/wait.h>
 #include <map>
 #include "common.hpp"
 #include "Parsing_request.hpp"
