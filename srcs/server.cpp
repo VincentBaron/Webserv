@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/16 11:10:51 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/16 11:31:29 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/16 12:39:01 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,7 @@ void Socket::initSocket(server_config &conf)
 
             if ((listen(server_fd, FD_SETSIZE)) < 0)
                 err_n_die("Listen error!!!");
-            this->servers.push_back(std::make_pair(server_fd, ite->port[0]));
+            this->servers.insert(std::make_pair(server_fd, ite->port[0]));
         }
         // for (std::vector<int>::iterator ite = servers.begin(); ite != servers.end(); ite++)
         // 	std::cout << "servers" << *ite << std::endl;
@@ -85,8 +85,7 @@ void Socket::handle_connection(Socket::iterator clientIte, server_config &conf)
     clientReq.parse_request(reqBuffer);
     response = clientReq.process_request(conf);
     FD_SET((*clientIte).first, &master_write_socks);
-    FD_CLR((*clientIte).first, &master_read_socks);
-    clientsResps.push_back(std::make_pair((*clientIte).first, response));
+    clientsResps.insert(std::make_pair((*clientIte).first, response));
     clients.erase(clientIte);
 }
 
@@ -118,9 +117,10 @@ void Socket::handle_response(Socket::intStrIte clientIte)
         return;
     }
     FD_CLR((*clientIte).first, &master_write_socks);
-    // FD_CLR((*clientIte).first, &master_read_socks);
+    FD_CLR((*clientIte).first, &master_read_socks);
+    int tmp = ((*clientIte).first);
     clientsResps.erase(clientIte);
-    close((*clientIte).first);
+    close(tmp);
 }
 
 void Socket::waitForConnections(server_config &conf)
@@ -133,12 +133,13 @@ void Socket::waitForConnections(server_config &conf)
     int max_socket = -1;
     /* struct timeval time = {2, 0}; */
 
-    for (Socket::iterator ite = servers.begin(); ite != servers.end(); ite++)
+    for (std::map<int, int>::iterator ite = servers.begin(); ite != servers.end(); ite++)
     {
         FD_SET((*ite).first, &master_read_socks);
         if ((*ite).first > max_socket)
             max_socket = (*ite).first;
     }
+    int iteration = 0;
     while (1)
     {
         FD_ZERO(&read_sockets);
@@ -152,41 +153,36 @@ void Socket::waitForConnections(server_config &conf)
         {
             if (FD_ISSET(i, &write_sockets))
             {
-                Socket::intStrIte ite;
-                for (ite = clientsResps.begin(); ite != clientsResps.end(); ite++)
-                {
-                    if ((*ite).first == i)
-                    {
-                        handle_response(ite);
-                        break;
-                    }
-                }
+                std::cout << "Clients receives response At iteration: " << iteration << std::endl;
+
+                std::map<int, std::string>::iterator ite = clientsResps.find(i);
+                if (ite != clientsResps.end())
+                    handle_response(ite);
             }
 
-            if (FD_ISSET(i, &read_sockets))
+            else if (FD_ISSET(i, &read_sockets))
             {
+
                 Socket::iterator serverIte = checkIsServer(i);
                 if (serverIte != servers.end())
                 {
+                    std::cout << "Server new connection At iteration: " << iteration << std::endl;
                     int client_socket = accept_new_connection(i);
-                    clients.push_back(std::make_pair(client_socket, (*serverIte).second));
+                    clients.insert(std::make_pair(client_socket, (*serverIte).second));
                     FD_SET(client_socket, &master_read_socks);
                     if (client_socket > max_socket)
                         max_socket = client_socket;
                 }
                 else
                 {
-                    Socket::iterator ite;
-                    for (ite = clients.begin(); ite != clients.end(); ite++)
-                    {
-                        if ((*ite).first == i)
-                        {
-                            handle_connection(ite, conf);
-                            break;
-                        }
-                    }
+                    std::cout << "Clients sends request At iteration: " << iteration << std::endl;
+
+                    std::map<int, int>::iterator ite = clients.find(i);
+                    if (ite != clients.end())
+                        handle_connection(ite, conf);
                 }
             }
         }
+        iteration++;
     }
 }
