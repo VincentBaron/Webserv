@@ -1,5 +1,6 @@
 #include "Parsing_request.hpp"
 #include "cgi.hpp"
+#include "../includes/server.hpp"
 
 std::string		client_request::process_request(server_config const data)
 {
@@ -665,11 +666,16 @@ void		client_request::parse_request(char * buffer)
 		it = this->header_fields.find("Content-Length");
 		if (it != this->header_fields.end())
 			con_len = atoi(it->second.c_str());
+		if (con_len + body_pos >= MAX_LINE || con_len > 100000)
+		{
+			this->error = "413";
+			return ;
+		}
 		if (pos == 0)
 		{
 			body_pos += (pos + 2);
-			std::string		buffered_string(buffer + body_pos, con_len);
 			input.erase(0, 2);
+			std::string		buffered_string(buffer + body_pos, con_len);
 			/* this->body = input; */
 			this->body = buffered_string;
 		}
