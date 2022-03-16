@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/16 11:10:51 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/16 12:19:09 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/16 12:39:01 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -86,6 +86,7 @@ void Socket::handle_connection(Socket::iterator clientIte, server_config &conf)
     response = clientReq.process_request(conf);
     FD_SET((*clientIte).first, &master_write_socks);
     clientsResps.insert(std::make_pair((*clientIte).first, response));
+    clients.erase(clientIte);
 }
 
 Socket::iterator Socket::checkIsServer(int i)
@@ -117,9 +118,9 @@ void Socket::handle_response(Socket::intStrIte clientIte)
     }
     FD_CLR((*clientIte).first, &master_write_socks);
     FD_CLR((*clientIte).first, &master_read_socks);
+    int tmp = ((*clientIte).first);
     clientsResps.erase(clientIte);
-    clients.erase((*clientIte).first);
-    close((*clientIte).first);
+    close(tmp);
 }
 
 void Socket::waitForConnections(server_config &conf)
@@ -182,6 +183,6 @@ void Socket::waitForConnections(server_config &conf)
                 }
             }
         }
+        iteration++;
     }
-    iteration++;
 }
