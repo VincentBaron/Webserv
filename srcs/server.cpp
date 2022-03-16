@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/16 11:10:51 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/16 17:45:57 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/16 17:48:36 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -152,6 +152,7 @@ void Socket::waitForConnections(server_config &conf)
         if ((*ite).first > max_socket)
             max_socket = (*ite).first;
     }
+    std::cout << "Waiting for a connection..." << std::endl;
     while (1)
     {
 //......Set tmp read and write fd sets to master fd sets.        
@@ -160,7 +161,6 @@ void Socket::waitForConnections(server_config &conf)
         read_sockets = master_read_socks;
         write_sockets = master_write_socks;
 //......Wait for Select to detect activity on read or write side
-        std::cout << "Waiting for a connection..." << std::endl;
         if (select(max_socket + 1, &read_sockets, &write_sockets, NULL, NULL) < 0)
             err_n_die("Select failed!!");
 //.....Iterate over all fds
