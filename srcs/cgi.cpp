@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/16 12:59:51 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/16 13:14:41 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/16 17:46:10 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,6 +40,8 @@ void Cgi::init_vars(std::string file_path)
 
 void Cgi::set_vars(client_request request)
 {
+    
+//..Set env variables for execve    
     _body = "";
     _env["AUTH_TYPE"] = "";
     _env["CONTENT_LENGTH"] = "0";
@@ -52,17 +54,18 @@ void Cgi::set_vars(client_request request)
     _env["SERVER_NAME"] = "webserv";
     _env["SERVER_PROTOCOL"] = "HTTP/1.1";
 
+//..Add query string to _env in case there is input (e.g. ?firstname=Vinny&lastname=Biggy)    
     if (request.method == "GET" && request.query_string != "")
     {
         _env["QUERY_STRING"] = request.query_string;
         _body = request.query_string;
     }
+//..Add content-length and content-type in case request is POST
     if (request.method == "POST")
     {
         std::stringstream content_len;
         content_len << request.body.size();
         _env["CONTENT_LENGTH"] = content_len.str();
-        // std::cout << "_env[\"CONTENT_LENGTH\"] " << _env["CONTENT_LENGTH"] << std::endl;
         _env["CONTENT_TYPE"] = request.header_fields.find("Content-Type")->second;
         _body = request.body;
     }
@@ -71,6 +74,7 @@ void Cgi::set_vars(client_request request)
     if (_envs == NULL)
         err_n_die("Error malloc!");
 
+//..Add content of _env to _envs to be sent to execve    
     int i = 0;
     for (std::map<std::string, std::string>::iterator ite = _env.begin(); ite != _env.end(); ite++)
     {
@@ -88,6 +92,7 @@ void Cgi::execute_cgi(void)
     int status;
     int pid;
 
+//..Execute cgi
     if (pipe(fds) == -1)
         err_n_die("Pipe error!");
 
@@ -124,11 +129,12 @@ void Cgi::execute_cgi(void)
         while (read(fds[READ], &c, 1) > 0)
             _response += c;
     }
-    // std::cout << "response: " << _response << std::endl;
 }
 
 void Cgi::remove_headers(void)
 {
+    
+//..Remove useless headers in response    
     std::string header("");
     std::string key;
     std::string value;
