@@ -6,7 +6,7 @@
 #    By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/03/01 13:03:47 by vincentbaro       #+#    #+#              #
-#    Updated: 2022/03/15 23:09:51 by vincentbaro      ###   ########.fr        #
+#    Updated: 2022/03/16 11:21:28 by vincentbaro      ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -19,6 +19,7 @@ SOURCES =   main.cpp \
 			parsing.cpp \
 			parsing_utils.cpp \
 			Parsing_request.cpp \
+			server.cpp \
 
 
 SRCS = $(addprefix $(DIR_S)/,$(SOURCES))

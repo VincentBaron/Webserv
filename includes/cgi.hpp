@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/14 13:32:44 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/15 23:10:05 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/16 11:00:43 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -42,7 +42,8 @@ public:
         _path = file_path;
         // std::cout << "_path: " << _path << std::endl;
         std::string pwd = getcwd(NULL, 0);
-        std::string cgi_path = pwd + "/cgi_executable/php-cgi";
+        std::string cgi_path = pwd + "/cgi_executable_mac/php-cgi";
+        // std::string cgi_path = pwd + "/cgi_executable/php-cgi";
         _vars = (char **)malloc(sizeof(char *) * (MAX_ARGS + 1));
         char *name = strdup((char *)_path.c_str());
         char *path = strdup((char *)cgi_path.c_str());
