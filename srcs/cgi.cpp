@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/16 12:59:51 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/16 13:06:45 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/16 13:14:41 by vincentbaro      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -18,17 +18,21 @@ Cgi::~Cgi(void) {}
 void Cgi::init_vars(std::string file_path)
 {
     _path = file_path;
-    // std::cout << "_path: " << _path << std::endl;
     std::string pwd = getcwd(NULL, 0);
+
+//..Get path of CGI executable
     std::string cgi_path = pwd + "/cgi_executable_mac/php-cgi";
-    // std::string cgi_path = pwd + "/cgi_executable/php-cgi";
     _vars = (char **)malloc(sizeof(char *) * (MAX_ARGS + 1));
+
+//..Get path of file to send to cgi
     char *name = strdup((char *)_path.c_str());
     char *path = strdup((char *)cgi_path.c_str());
     if (name == NULL)
         err_n_die("Error creating name");
     if (path == NULL)
         err_n_die("Error creating path");
+
+//..Group all path variables into vars to send to cgi executable later
     _vars[0] = path;
     _vars[1] = name;
     _vars[2] = NULL;
@@ -83,11 +87,6 @@ void Cgi::execute_cgi(void)
     int fds[2];
     int status;
     int pid;
-
-    // for (int i = 0; _vars[i]; i++)
-    //     std::cout << "vars[" << i << "]: " << _vars[i] << std::endl;
-    // for (int i = 0; _envs[i]; i++)
-    //     std::cout << "envs[" << i << "]: " << _envs[i] << std::endl;
 
     if (pipe(fds) == -1)
         err_n_die("Pipe error!");
