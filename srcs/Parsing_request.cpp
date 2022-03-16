@@ -491,7 +491,6 @@ std::string		client_request::process_post(server_config const config)
 
 	this->reponse_len = ret.size();
 
-	std::cout << "ret: \n" << ret << std::endl;
 	return ret;	
 }
 

@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/16 11:10:51 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/16 17:52:47 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/16 21:27:19 by daprovin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -120,8 +120,10 @@ void Socket::handle_response(Socket::intStrIte clientIte)
     {
         std::cout << "Error with send!" << std::endl;
         FD_CLR((*clientIte).first, &master_write_socks);
+        FD_CLR((*clientIte).first, &master_read_socks);
+    	int tmp = ((*clientIte).first);
         clientsResps.erase(clientIte);
-        close((*clientIte).first);
+        close(tmp);
         return;
     }
     if (ret == 0)

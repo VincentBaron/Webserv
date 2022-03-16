@@ -6,7 +6,7 @@
 #    By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/03/01 13:03:47 by vincentbaro       #+#    #+#              #
-#    Updated: 2022/03/16 13:07:22 by vincentbaro      ###   ########.fr        #
+#    Updated: 2022/03/16 22:12:16 by daprovin         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -35,7 +35,7 @@ INCLUDES = -I includes
 
 CC = clang++
 
-CFLAGS = -Wall -Wextra -Werror -std=c++98 -g3 -fsanitize=address
+CFLAGS = -Wall -Wextra -Werror -std=c++98
 
 all: $(NAME)
 
