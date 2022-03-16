@@ -312,7 +312,7 @@ std::string	client_request::process_get(server_config const config)
 std::string client_request::process_cgi(std::string file_path)
 {
 	Cgi interface;
-
+	
 	interface.init_vars(file_path);
 	interface.set_vars(*this);
 	interface.execute_cgi();
