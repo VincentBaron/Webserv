@@ -37,7 +37,7 @@ location_s		parse_location(std::ifstream & conf_file, std::string line)
 			std::cout << "Syntax error:" << line << std::endl;
 			_exit(1);
 		}
-		else if (line.compare(0, 5, "allow") == 0)			//parse allowed methods
+		else if (line.compare(0, 5, "allow") == 0)					//parse allowed methods
 			ret.allowed_methods = parse_methods(line);
 		else if (line.compare(0, 5, "index") == 0) 					//parse index
 			ret.index = parse_index(line);

@@ -185,10 +185,6 @@ std::string	client_request::process_get(server_config const config)
 				file_path = tmp;
 			else
 				tmp.clear();
-			/* if (path_is_dir(tmp)) */
-			/* 	tmp.clear(); */
-			/* else if (!path_is_file(tmp)) */
-			/* 	tmp.clear(); */
 		}
 
 		if (config.if_autoindex_on(this->server_pos, this->location_pos) && (config.get_index(this->server_pos, this->location_pos).empty() || tmp.empty()))
@@ -225,10 +221,6 @@ std::string	client_request::process_get(server_config const config)
 		else if (config.get_index(this->server_pos, this->location_pos).empty() || tmp.empty())
 		{
 			dir_flag = true;
-			/* file_path += config.get_index(this->server_pos, this->location_pos); */
-			/* if (path_is_dir(file_path)) */
-			/* 	file_path.clear(); */
-			/* else if (!path_is_file(file_path)) */
 			file_path.clear();
 		}
 	}
@@ -281,9 +273,7 @@ std::string	client_request::process_get(server_config const config)
 				reponse_body = process_cgi(file_path);
 				content_type = "text/html";
 			}
-			// else if (extension == ".php")
-			// 	std::string response = manage_cgi(reponse_body);
-		}                               //need to add 415 error if extension not found
+		}
 		if (it == this->file_types.end() && extension != ".php")
 		{
 			this->error = "415";
@@ -643,43 +633,36 @@ void		client_request::parse_request(char * buffer)
 	std::map<std::string, std::string>::iterator it;
 	int				con_len(0);
 
-	/* if (this->reading_body()) */
-	/* 	this->body += input; */
-	/* else */
-	/* { */
+	pos = input.find("\r\n");
+	line = input.substr(0, pos);
+	if (this->parse_line_request(line))
+		return ;
+	input.erase(0, pos + 2);
+	body_pos += (pos + 2);
+
+	while ((pos = input.find("\r\n")) != std::string::npos && (pos + 2) < input.size() && pos != 0) {
 		pos = input.find("\r\n");
-		line = input.substr(0, pos);
-		if (this->parse_line_request(line))
+		line = input.substr(0, pos);	
+		if (this->parse_header_line(line))
 			return ;
 		input.erase(0, pos + 2);
 		body_pos += (pos + 2);
-
-		while ((pos = input.find("\r\n")) != std::string::npos && (pos + 2) < input.size() && pos != 0)
-		{
-			pos = input.find("\r\n");
-			line = input.substr(0, pos);	
-			if (this->parse_header_line(line))
-				return ;
-			input.erase(0, pos + 2);
-			body_pos += (pos + 2);
-		}
-		it = this->header_fields.find("Content-Length");
-		if (it != this->header_fields.end())
-			con_len = atoi(it->second.c_str());
-		if (con_len + body_pos >= MAX_LINE || con_len > 100000)
-		{
-			this->error = "413";
-			return ;
-		}
-		if (pos == 0)
-		{
-			body_pos += (pos + 2);
-			input.erase(0, 2);
-			std::string		buffered_string(buffer + body_pos, con_len);
-			/* this->body = input; */
-			this->body = buffered_string;
-		}
-	/* } */
+	}
+	it = this->header_fields.find("Content-Length");
+	if (it != this->header_fields.end())
+		con_len = atoi(it->second.c_str());
+	if (con_len + body_pos >= MAX_LINE || con_len > 100000)
+	{
+		this->error = "413";
+		return ;
+	}
+	if (pos == 0)
+	{
+		body_pos += (pos + 2);
+		input.erase(0, 2);
+		std::string		buffered_string(buffer + body_pos, con_len);
+		this->body = buffered_string;
+	}
 }
 
 std::map<std::string, std::string>		client_request::initialize_file_types()
