@@ -8,7 +8,7 @@ std::string		client_request::process_request(server_config const data)
 	if (this->error != "200")
 	{
 		this->http_version = "HTTP/1.1";
-		process_error(data);
+		return this->process_error(data);
 	}
 
 //......Serching a server matching the port
@@ -747,6 +747,7 @@ std::map<std::string, std::string>		client_request::initialize_file_types()
 	ret[".3gp"]      = "video/3gpp audio/3gpp";
 	ret[".3g2"]      = "video/3gpp2 audio/3gpp2";
 	ret[".7z"]       = "application/x-7z-compressed";
+	ret[".txt"]      = "text/plain";
 
 	return ret;
 }

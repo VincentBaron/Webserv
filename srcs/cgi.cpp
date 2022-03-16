@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/16 12:59:51 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/16 13:06:45 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/16 16:44:11 by daprovin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,14 +15,25 @@
 Cgi::Cgi(void) {}
 Cgi::~Cgi(void) {}
 
+void Cgi::free_all()
+{
+	for(int i = 0 ; _vars[i] ; ++i)
+		free(_vars[i]);
+	free(_vars);
+	for(int i = 0 ; _envs[i] ; ++i)
+		free(_envs[i]);
+	free(_envs);
+}
+
 void Cgi::init_vars(std::string file_path)
 {
     _path = file_path;
     // std::cout << "_path: " << _path << std::endl;
     std::string pwd = getcwd(NULL, 0);
-    std::string cgi_path = pwd + "/cgi_executable_mac/php-cgi";
+    std::string cgi_path = pwd + "/cgi_executable_linux/php-cgi";
     // std::string cgi_path = pwd + "/cgi_executable/php-cgi";
-    _vars = (char **)malloc(sizeof(char *) * (MAX_ARGS + 1));
+    if (!(_vars = (char **)malloc(sizeof(char *) * (MAX_ARGS + 1))))
+		err_n_die("Error envs vars");
     char *name = strdup((char *)_path.c_str());
     char *path = strdup((char *)cgi_path.c_str());
     if (name == NULL)
@@ -72,7 +83,12 @@ void Cgi::set_vars(client_request request)
     {
         _envs[i] = strdup((ite->first + "=" + ite->second).c_str());
         if (_envs[i] == NULL)
+		{
+			for (int i = 0 ; _vars[i] ; i++)
+				free(_vars[i]);
+			free(_vars);
             err_n_die("Error envs vars");
+		}
         i++;
     }
     _envs[i] = NULL;
@@ -110,7 +126,11 @@ void Cgi::execute_cgi(void)
         }
 
         if (execve(_vars[0], _vars, _envs) == -1)
+		{
+			free_all();
             err_n_die("execve error!");
+		}
+		free_all();
         exit(0);
     }
     else
@@ -125,6 +145,7 @@ void Cgi::execute_cgi(void)
         while (read(fds[READ], &c, 1) > 0)
             _response += c;
     }
+	free_all();
     // std::cout << "response: " << _response << std::endl;
 }
 

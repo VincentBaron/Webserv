@@ -6,7 +6,7 @@
 /*   By: vincentbaron <vincentbaron@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/03/14 13:32:44 by vincentbaro       #+#    #+#             */
-/*   Updated: 2022/03/16 13:06:56 by vincentbaro      ###   ########.fr       */
+/*   Updated: 2022/03/16 15:39:35 by daprovin         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,6 +47,7 @@ public:
 
     std::string get_response(void);
 
+
 private:
     // Attributes
     std::string _path;
@@ -57,6 +58,8 @@ private:
     std::map<std::string, std::string> _cgi_content;
     char **_vars;
     char **_envs;
+	// Private functions
+	void free_all(void);
 };
 
 #endif
